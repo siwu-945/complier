@@ -2,6 +2,7 @@ import AST.ASTExpression;
 import Expressions.Number;
 import Expressions.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,20 +36,22 @@ public class Parser {
                 rest3 = rest3.substring(2);
             }
             return new Pair<>(new ArithmeticExpression(left, op, right), rest3);
+
         } else if (input.startsWith("^")) {
             // Parse method invocation
             int dotIndex = input.indexOf(".");
             int argStart = input.indexOf("(");
+            List<ASTExpression> arguments = new ArrayList<>();
 
-            Pair<ASTExpression, String> object = parseExpr(input.substring(0, dotIndex));
+            ASTExpression objectExpr = input.substring(1, dotIndex);
+            String methodName = input.substring(dotIndex + 1, argStart);
 
-            ASTExpression objectExpr = object.getFirst();
-            String rest1 = object.getSecond();
-            String methodName = rest1.substring(dotIndex + 1, argStart);
+            //recursively call on arguments.
             Pair<ASTExpression, String> args = parseExpr(rest1.substring(argStart + 1));
+            arguments.add(args.getFirst());
 
-            List<ASTExpression> arguments;
-            return new Pair<>(new Method(objectExpr, methodName, arguments));
+            String rest2 = args.getSecond();
+            return new Pair<>(new Method(objectExpr, methodName, arguments), rest2);
         }
 //        else if (input.startsWith("&")) {
 //            // Parse field read

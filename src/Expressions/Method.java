@@ -15,8 +15,16 @@ public class Method extends ASTExpression {
         this.arguments = arguments;
     }
 
+    public StringBuilder argumentsString() {
+        StringBuilder argumentsString = new StringBuilder();
+        for (ASTExpression expression : arguments) {
+            argumentsString.append(expression.toString());
+        }
+        return argumentsString;
+    }
+
     @Override
     public String toString() {
-        return null;
+        return object.toString() + methodName + "(" + argumentsString().toString() + ")";
     }
 }

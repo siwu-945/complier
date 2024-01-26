@@ -9,5 +9,9 @@ public class main {
         ASTExpression myExp = myParser.parseExpr(code).getFirst();
 
         System.out.println(myExp);
+
+        String methods = "^object.myFunc(3, 4, 5)";
+        ASTExpression myMethods = myParser.parseExpr(methods).getFirst();
+        System.out.println(myMethods);
     }
 }
