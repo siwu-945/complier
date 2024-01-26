@@ -8,4 +8,13 @@ public class Number extends ASTExpression {
     public Number(int value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return Integer.toString(value);
+    }
+
+    public int getValue() {
+        return value;
+    }
 }
