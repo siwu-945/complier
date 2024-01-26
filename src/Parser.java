@@ -1,4 +1,5 @@
 import AST.ASTExpression;
+import AST.ASTStatement;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
@@ -10,12 +11,9 @@ import java.util.regex.Pattern;
 
 public class Parser {
     public Pair<ASTExpression, String> parseExpr(String input) {
-        input = input.trim();
         if (Character.isDigit(input.charAt(0))) {
-            // Parse number literal
             return parseNumber(input);
         } else if (Character.isLetter(input.charAt(0))) {
-            // Parse
             return parseVariable(input);
         } else if (input.startsWith("(")) {
             // Parse arithmetic expression
@@ -61,11 +59,14 @@ public class Parser {
             }
 
             return new Pair<>(new Method(objectExpr, methodName, arguments), "");
+        } else if (input.startsWith("&")) {
+            // Parse field read
+            int dotIndex = input.indexOf(".");
+            Object objectExpr = new Object(input.substring(1, dotIndex));
+            String name = input.substring(dotIndex + 1);
+
+            return new Pair<>(new FieldRead(objectExpr, name), "");
         }
-//        else if (input.startsWith("&")) {
-//            // Parse field read
-//            return parseFieldRead(input);
-//        }
         // Handle other cases or throw an error
         throw new IllegalArgumentException("Invalid expression: " + input);
     }
@@ -90,5 +91,20 @@ public class Parser {
             return new Pair<>(new Number(value), remaining);
         }
         throw new IllegalArgumentException("Invalid number: " + input);
+    }
+
+    public ASTStatement parseStatement(String line) {
+        if (line.startsWith("if ")) {
+
+        } else if (line.startsWith("while ")) {
+
+        } else if (line.startsWith("ifonly ")) {
+
+        } else if (line.startsWith("return ")) {
+
+        } else if (line.startsWith("print ")) {
+
+        }
+        return new ASTStatement();
     }
 }
