@@ -1,5 +1,6 @@
 import AST.ASTExpression;
 import Expressions.Number;
+import Expressions.Object;
 import Expressions.*;
 
 import java.util.ArrayList;
@@ -43,15 +44,23 @@ public class Parser {
             int argStart = input.indexOf("(");
             List<ASTExpression> arguments = new ArrayList<>();
 
-            ASTExpression objectExpr = input.substring(1, dotIndex);
+            ASTExpression objectExpr = new Object(input.substring(1, dotIndex));
             String methodName = input.substring(dotIndex + 1, argStart);
 
+            String rest1 = input.substring(argStart + 1);
             //recursively call on arguments.
-            Pair<ASTExpression, String> args = parseExpr(rest1.substring(argStart + 1));
-            arguments.add(args.getFirst());
+            while (true) {
+                if (rest1.startsWith(")")) {
+                    break;
+                } else if (rest1.startsWith(",")) {
+                    rest1 = rest1.substring(2);
+                }
+                Pair<ASTExpression, String> args = parseExpr(rest1);
+                arguments.add(args.getFirst());
+                rest1 = args.getSecond();
+            }
 
-            String rest2 = args.getSecond();
-            return new Pair<>(new Method(objectExpr, methodName, arguments), rest2);
+            return new Pair<>(new Method(objectExpr, methodName, arguments), "");
         }
 //        else if (input.startsWith("&")) {
 //            // Parse field read

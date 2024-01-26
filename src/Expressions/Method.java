@@ -19,12 +19,13 @@ public class Method extends ASTExpression {
         StringBuilder argumentsString = new StringBuilder();
         for (ASTExpression expression : arguments) {
             argumentsString.append(expression.toString());
+            argumentsString.append("");
         }
         return argumentsString;
     }
 
     @Override
     public String toString() {
-        return object.toString() + methodName + "(" + argumentsString().toString() + ")";
+        return object.toString() + "." + methodName + "(" + argumentsString().toString() + ")";
     }
 }
