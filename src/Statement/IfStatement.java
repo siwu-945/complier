@@ -17,4 +17,13 @@ public class IfStatement extends ASTStatement {
         this.falseBranch = falseBranch;
     }
 
+    @Override
+    public String toString() {
+        String ifStrings = exp + "\n";
+        for (ASTStatement sta : trueBranch) {
+            ifStrings += sta;
+        }
+        return ifStrings;
+    }
+
 }

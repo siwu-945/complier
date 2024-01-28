@@ -3,6 +3,8 @@ import AST.ASTStatement;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
+import Statement.IfStatement;
+import Statement.PrintStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser {
+
     public Pair<ASTExpression, String> parseExpr(String input) {
         if (Character.isDigit(input.charAt(0))) {
             return parseNumber(input);
@@ -94,7 +97,28 @@ public class Parser {
     }
 
     public ASTStatement parseStatement(String line) {
+        String[] lines = line.split("\n");
+        ArrayList<String> statements = new ArrayList<>();
+        for (String state : lines) {
+            statements.add(state);
+        }
+        line = line.trim();
+
         if (line.startsWith("if ")) {
+            int ifEnd = line.indexOf(':');
+            ASTExpression ifExp;
+            if (line.charAt(3) == '(') {
+                ifExp = parseExpr(line.substring(4, ifEnd - 1)).getFirst();
+            } else {
+                ifExp = parseExpr(line.substring(3, ifEnd - 1)).getFirst();
+            }
+            statements.remove(0);
+
+            List<ASTStatement> trueBranch = new ArrayList<>();
+            while (statements.size() != 0) {
+                trueBranch.add(parseStatement(statements.get(0)));
+            }
+            return new IfStatement(ifExp, trueBranch, trueBranch);
 
         } else if (line.startsWith("while ")) {
 
@@ -103,8 +127,29 @@ public class Parser {
         } else if (line.startsWith("return ")) {
 
         } else if (line.startsWith("print ")) {
+            ASTExpression printExp;
+            int printEnd = line.indexOf(')');
 
+            if (line.charAt(6) == '(') {
+                printExp = parseExpr(line.substring(6, printEnd - 1)).getFirst();
+            } else {
+                printExp = parseExpr(line.substring(5)).getFirst();
+            }
+            return new PrintStatement(printExp);
         }
         return new ASTStatement();
+    }
+
+    public ArrayList<ASTStatement> parseStatementBlock(String codeBlock) {
+        String[] lines = codeBlock.split("\n");
+        ArrayList<ASTStatement> statementsBlock = new ArrayList<>();
+        int currentLine = 0;
+        while (currentLine < lines.length) {
+            String line = lines[currentLine];
+            currentLine++;
+
+            statementsBlock.add(parseStatement(line));
+        }
+        return statementsBlock;
     }
 }

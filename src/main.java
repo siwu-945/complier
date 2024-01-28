@@ -1,4 +1,7 @@
 import AST.ASTExpression;
+import AST.ASTStatement;
+
+import java.util.ArrayList;
 
 public class main {
     public static void main(String[] args) {
@@ -13,5 +16,13 @@ public class main {
         String methods = "^object.myFunc(3, 4, 5)";
         ASTExpression myMethods = myParser.parseExpr(methods).getFirst();
         System.out.println(myMethods);
+
+        String myblock = "if (1 = 1): { \n" +
+                "print(3)\n" +
+                "}";
+
+        ArrayList<ASTStatement> myStatements = myParser.parseStatementBlock(myblock);
+
+
     }
 }
