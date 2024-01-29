@@ -10,5 +10,9 @@ public class PrintStatement extends ASTStatement {
         this.printVal = printVal;
     }
 
+    @Override
+    public String toString() {
+        return printVal.toString();
+    }
 
 }

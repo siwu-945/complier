@@ -19,7 +19,7 @@ public class IfStatement extends ASTStatement {
 
     @Override
     public String toString() {
-        String ifStrings = exp + "\n";
+        String ifStrings = exp.toString() + "\n";
         for (ASTStatement sta : trueBranch) {
             ifStrings += sta;
         }

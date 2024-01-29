@@ -1,4 +1,4 @@
 package AST;
 
-public class ASTStatement {
+public abstract class ASTStatement {
 }
