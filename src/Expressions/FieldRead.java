@@ -3,10 +3,10 @@ package Expressions;
 import AST.ASTExpression;
 
 public class FieldRead extends ASTExpression {
-    Object obj;
+    ASTExpression obj;
     String name;
 
-    public FieldRead(Object obj, String name) {
+    public FieldRead(ASTExpression obj, String name) {
         this.obj = obj;
         this.name = name;
     }

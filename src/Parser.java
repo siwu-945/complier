@@ -1,5 +1,8 @@
 import AST.ASTExpression;
 import AST.ASTStatement;
+import Class.ClassMethod;
+import Class.ClassNode;
+import Class.Field;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
@@ -201,5 +204,52 @@ public class Parser {
             statementsBlock.add(newState);
         }
         return statementsBlock;
+    }
+
+    public ClassNode parseClass(String line) {
+        String[] lines = line.split("\n");
+        ArrayList<ClassMethod> methodList = new ArrayList<>();
+        ArrayList<Field> fieldList = new ArrayList<>();
+        ArrayList<Variable> localVar = new ArrayList<>();
+        ArrayList<ASTStatement> statementList = new ArrayList<>();
+
+
+        String name = "";
+        //parse name
+        if (lines[0].startsWith("class ")) {
+            int classNameIndex = lines[0].indexOf('[');
+            name = lines[0].substring(6, classNameIndex - 2);
+        }
+        //parse fields
+        if (lines[1].startsWith("fields ") && lines[1].length() > 7) {
+            String fieldsName = lines[1].substring(7);
+            for (String fieldName : fieldsName.split(",")) {
+                fieldList.add(new Field(fieldName));
+            }
+        }
+
+        //parse methods
+        int currentLine = 2;
+        while (lines.length > currentLine) {
+            ClassMethod methodInfo;
+            ASTExpression methodExp = null;
+            if (lines[currentLine].startsWith("method ")) {
+                int methodEnd = lines[currentLine].indexOf(')');
+                String newMethod = "^" + "this." + lines[currentLine].substring(7, methodEnd);
+                //TODO: what to do with methodExp?
+                methodExp = parseExpr(newMethod).getFirst();
+                int localIndex = lines[currentLine].indexOf("locals");
+                String localVariables = lines[currentLine].substring(localIndex + 1);
+                for (String variableName : localVariables.split(",")) {
+                    localVar.add(new Variable(variableName));
+                }
+                currentLine++;
+            }
+            statementList.add(parseStatement(lines[currentLine].trim()));
+            methodInfo = new ClassMethod(methodExp, localVar, statementList);
+            methodList.add(methodInfo);
+        }
+
+        return new ClassNode(name, fieldList, methodList);
     }
 }
