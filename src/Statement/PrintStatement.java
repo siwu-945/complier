@@ -17,13 +17,12 @@ public class PrintStatement extends ASTStatement {
 
     @Override
     public ASTExpression getVariable() {
-        return null;
+        return printVal;
     }
 
     @Override
     public ASTExpression getExpr() {
         return null;
     }
-
 
 }

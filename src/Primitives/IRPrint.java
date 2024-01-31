@@ -1,14 +1,15 @@
 package Primitives;
 
-public class Operand extends IRStatement {
+public class IRPrint extends IRStatement {
+
     String value;
 
-    public Operand(String value) {
+    public IRPrint(String value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return value;
+        return "print" + "(" + value + ")";
     }
 }

@@ -12,4 +12,9 @@ public class BinaryOperation extends IRStatement {
         this.right = right;
         this.operator = operator;
     }
+
+    @Override
+    public String toString() {
+        return left.toString() + operator.toString() + right.toString();
+    }
 }

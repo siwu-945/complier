@@ -12,4 +12,9 @@ public class IRAssignment extends IRStatement {
         this.right = right;
     }
 
+    @Override
+    public String toString() {
+        return "%" + variable + " = " + right.toString();
+    }
+
 }

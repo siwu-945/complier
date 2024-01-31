@@ -182,7 +182,7 @@ public class Parser {
             return new PrintStatement(printExp);
         } else {
             int assignIndex = line.indexOf('=');
-            String variableName = line.substring(0, assignIndex - 2);
+            String variableName = line.substring(0, assignIndex - 1).trim();
             String exp = line.substring(assignIndex + 2);
             ASTExpression x = parseExpr(variableName).getFirst();
             ASTExpression e = parseExpr(exp).getFirst();
