@@ -13,4 +13,14 @@ public class WhileStatement extends ASTStatement {
         this.exp = exp;
         this.whileBranch = whileBranch;
     }
+
+    @Override
+    public ASTExpression getVariable() {
+        return null;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return null;
+    }
 }

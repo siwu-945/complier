@@ -15,4 +15,15 @@ public class PrintStatement extends ASTStatement {
         return printVal.toString();
     }
 
+    @Override
+    public ASTExpression getVariable() {
+        return null;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return null;
+    }
+
+
 }

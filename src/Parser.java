@@ -169,7 +169,7 @@ public class Parser {
 
         } else if (line.startsWith("}")) {
             return new endStatement();
-        } else if (line.startsWith("print ")) {
+        } else if (line.startsWith("print ") || line.startsWith("print")) {
             ASTExpression printExp;
             int printEnd = line.indexOf(')');
 
@@ -252,4 +252,5 @@ public class Parser {
 
         return new ClassNode(name, fieldList, methodList);
     }
+
 }

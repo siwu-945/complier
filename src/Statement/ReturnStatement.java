@@ -11,4 +11,14 @@ public class ReturnStatement extends ASTStatement {
         this.returnExp = returnExp;
     }
 
+    @Override
+    public ASTExpression getVariable() {
+        return null;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return null;
+    }
+
 }

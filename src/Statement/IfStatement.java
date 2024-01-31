@@ -26,4 +26,14 @@ public class IfStatement extends ASTStatement {
         return ifStrings;
     }
 
+    @Override
+    public ASTExpression getVariable() {
+        return null;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return null;
+    }
+
 }

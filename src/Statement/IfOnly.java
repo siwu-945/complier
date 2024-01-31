@@ -13,4 +13,14 @@ public class IfOnly extends ASTStatement {
         this.exp = exp;
         this.trueBranch = trueBranch;
     }
+
+    @Override
+    public ASTExpression getVariable() {
+        return null;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return null;
+    }
 }

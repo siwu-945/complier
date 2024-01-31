@@ -12,5 +12,15 @@ public class Assignment extends ASTStatement {
         this.e = e;
     }
 
+    @Override
+    public ASTExpression getVariable() {
+        return variable;
+    }
+
+    @Override
+    public ASTExpression getExpr() {
+        return e;
+    }
+
 
 }
