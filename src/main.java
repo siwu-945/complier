@@ -41,16 +41,13 @@ public class main {
                 "    y = ((4 + 5) + 3)\n" +
                 " print(3)";
         String irTest1 =
-                "    y = ((4 + 5) + 3)\n" +
+                "    y = (3 + (5 * 6))\n" +
                         " print(3)";
 
 //        myParser.parseExpr("3)");
         ArrayList<ASTStatement> codeToStas = myParser.parseStatementBlock(irTest1);
         myBlocks.add(new BasicBlock(myIRStatements, "initial"));
-
-//        for (ASTStatement s : codeToStas) {
-//            String myIRStatName = myIR.exprToIR(s, myBlocks, "initial");
-//        }
+        myIR.addToBB(codeToStas, myBlocks, "initial");
         for (BasicBlock block : myBlocks) {
             for (IRStatement irLine : block.getIRStatements()) {
                 System.out.println(irLine);

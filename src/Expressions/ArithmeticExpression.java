@@ -46,4 +46,8 @@ public class ArithmeticExpression extends ASTExpression {
     public ASTExpression getRight() {
         return right;
     }
+
+    public Character getOp() {
+        return op;
+    }
 }

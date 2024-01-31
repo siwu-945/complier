@@ -4,12 +4,13 @@ import AST.ASTExpression;
 import AST.ASTStatement;
 import BasicBlock.BasicBlock;
 import Expressions.ArithmeticExpression;
+import Expressions.Number;
 import Statement.Assignment;
 
 import java.util.ArrayList;
 
 public class TransformIR {
-    int counter = 0;
+    int tmpVar = 1;
 
 //    public String StatementToIR(ASTStatement statement, ArrayList<BasicBlock> bs, String cur) {
 //        BasicBlock currentBlock = findBlockByName(bs, cur);
@@ -45,12 +46,24 @@ public class TransformIR {
 //    }
 
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
-        int tmpVar = 1;
+
         if (expr instanceof ArithmeticExpression) {
-            ((ArithmeticExpression) expr).getLeft();
-            IRVariable tmp = new IRVariable(Integer.toString(tmpVar));
+            String leftVar = exprToIR(((ArithmeticExpression) expr).getLeft(), currentBlock);
+            String rightVar = exprToIR(((ArithmeticExpression) expr).getRight(), currentBlock);
+            Character op = ((ArithmeticExpression) expr).getOp();
+            tmpVar++;
+            IRVariable newVar = new IRVariable(Integer.toString(tmpVar));
+            IRAssignment newIR = new IRAssignment(newVar, leftVar + op + rightVar);
+            currentBlock.addIRStatement(newIR);
+        } else if (expr instanceof Number) {
+            String tmpName = Integer.toString(tmpVar);
+            IRVariable newVar = new IRVariable(tmpName);
+            IRAssignment newAssign = new IRAssignment(newVar, expr.toString());
+            currentBlock.addIRStatement(newAssign);
+            tmpVar++;
         }
-        return "2";
+
+        return Integer.toString(tmpVar);
     }
 
     public void addToBB(ArrayList<ASTStatement> statements, ArrayList<BasicBlock> bs, String cur) {
@@ -59,7 +72,7 @@ public class TransformIR {
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                String tmpVar = exprToIR(statement.getExpr(), currentBlock);
+                String tmpVar = "%" + Integer.toString(Integer.parseInt(exprToIR(statement.getExpr(), currentBlock)) + 1);
                 IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
                 currentBlock.addIRStatement(newIR);
             }
