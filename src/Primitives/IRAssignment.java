@@ -1,20 +1,18 @@
 package Primitives;
 
-import AST.ASTExpression;
-
 public class IRAssignment extends IRStatement {
 
-    String variable;
-    ASTExpression right;
+    IRVariable variable;
+    String right;
 
-    public IRAssignment(String variable, ASTExpression right) {
+    public IRAssignment(IRVariable variable, String right) {
         this.variable = variable;
         this.right = right;
     }
 
     @Override
     public String toString() {
-        return "%" + variable + " = " + right.toString();
+        return variable + " = " + right.toString();
     }
 
 }

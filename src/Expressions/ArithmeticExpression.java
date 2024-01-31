@@ -35,8 +35,15 @@ public class ArithmeticExpression extends ASTExpression {
     @Override
     public String toString() {
 
-        String result = left.toString() + op + right.toString();
+        String result = left.toString() + " " + op + " " + right.toString();
         return result;
     }
 
+    public ASTExpression getLeft() {
+        return left;
+    }
+
+    public ASTExpression getRight() {
+        return right;
+    }
 }

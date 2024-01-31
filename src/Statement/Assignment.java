@@ -22,5 +22,10 @@ public class Assignment extends ASTStatement {
         return e;
     }
 
+    @Override
+    public String toString() {
+        return variable.toString() + " = " + e.toString();
+    }
+
 
 }

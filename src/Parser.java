@@ -31,11 +31,13 @@ public class Parser {
             Character op = rest1.charAt(0);
             String rest2 = rest1.substring(2);
             Pair<ASTExpression, String> rightres = parseExpr(rest2);
-            ASTExpression right = (Number) rightres.getFirst();
+            ASTExpression right = rightres.getFirst();
             String rest3 = rightres.getSecond();
 
             if (rest3.startsWith(")") && rest3.length() == 1) {
                 rest3 = "";
+            } else if (rest3.startsWith(")") && rest3.length() >= 1) {
+                rest3 = rest3.substring(1).trim();
             } else {
                 rest3 = rest3.substring(2);
             }
@@ -185,7 +187,8 @@ public class Parser {
             String variableName = line.substring(0, assignIndex - 1).trim();
             String exp = line.substring(assignIndex + 2);
             ASTExpression x = parseExpr(variableName).getFirst();
-            ASTExpression e = parseExpr(exp).getFirst();
+            Pair<ASTExpression, String> expPair = parseExpr(exp);
+            ASTExpression e = expPair.getFirst();
 
             return new Assignment(x, e);
         }
