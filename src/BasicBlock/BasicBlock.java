@@ -11,12 +11,10 @@ import java.util.ArrayList;
 public class BasicBlock {
     private ArrayList<IRStatement> IRStatements;
     private String blockname;
-    private int tmpVar;
 
     public BasicBlock(ArrayList<IRStatement> IRStatements, String blockname) {
         this.IRStatements = IRStatements;
         this.blockname = blockname;
-        this.tmpVar = 0;
     }
 
     public void addIRStatement(IRStatement irLine) {
@@ -43,11 +41,4 @@ public class BasicBlock {
         return IRStatements;
     }
 
-    public int getTmpVar() {
-        return tmpVar;
-    }
-
-    public void incrementTmpVar() {
-        tmpVar++;
-    }
 }

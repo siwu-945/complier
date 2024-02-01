@@ -2,6 +2,7 @@ import AST.ASTStatement;
 import BasicBlock.BasicBlock;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
+import Program.GlobalDataSegment;
 
 import java.util.ArrayList;
 
@@ -10,11 +11,6 @@ public class main {
         //TODO: fix this arth
         String code = "(3 + (10 + 3))";
 //
-        Parser myParser = new Parser();
-        TransformIR myIR = new TransformIR();
-        ArrayList<BasicBlock> myBlocks = new ArrayList<BasicBlock>();
-        ArrayList<IRStatement> myIRStatements = new ArrayList<>();
-
 //        ASTExpression myExp = myParser.parseExpr(code).getFirst();
 
 //        System.out.println(myExp);
@@ -41,11 +37,16 @@ public class main {
                 "    y = ((4 + 5) + 3)\n" +
                 " print(3)";
         String irTest1 =
-                "    y = (3 + (5 * 6))\n" +
+                "    y = ((3 + 5) * 6)\n" +
                         " print(3)";
 
-//        myParser.parseExpr("3)");
+        Parser myParser = new Parser();
+        TransformIR myIR = new TransformIR();
+        ArrayList<BasicBlock> myBlocks = new ArrayList<BasicBlock>();
+        ArrayList<IRStatement> myIRStatements = new ArrayList<>();
+
         ArrayList<ASTStatement> codeToStas = myParser.parseStatementBlock(irTest1);
+        GlobalDataSegment classArrays = myParser.checkForClass(codeToStas);
         myBlocks.add(new BasicBlock(myIRStatements, "initial"));
         myIR.addToBB(codeToStas, myBlocks, "initial");
         for (BasicBlock block : myBlocks) {

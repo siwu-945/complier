@@ -6,6 +6,7 @@ import Class.Field;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
+import Program.GlobalDataSegment;
 import Statement.*;
 
 import java.util.ArrayList;
@@ -256,4 +257,15 @@ public class Parser {
         return new ClassNode(name, fieldList, methodList);
     }
 
+    public GlobalDataSegment checkForClass(ArrayList<ASTStatement> statements) {
+        GlobalDataSegment arrays = new GlobalDataSegment();
+
+        for (ASTStatement statement : statements) {
+            if (statement instanceof ClassNode) {
+                String className = "vtbl" + ((ClassNode) statement).getClassName();
+            }
+        }
+        return arrays;
+
+    }
 }
