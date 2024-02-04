@@ -32,4 +32,27 @@ public class ClassNode extends ASTStatement {
     public ASTExpression getExpr() {
         return null;
     }
+
+    private String filedsString() {
+        String fieldString = "";
+        for (Field field : fields) {
+            fieldString += field.toString();
+        }
+        return fieldString;
+    }
+
+    private String methodString() {
+        String methodString = "";
+        for (ClassMethod method : methods) {
+            methodString += method.toString();
+        }
+        return methodString;
+    }
+
+    @Override
+    public String toString() {
+        String filedsString = filedsString();
+        String methodString = methodString();
+        return "class: " + className + "\n" + "[ " + "fields : " + filedsString + "\n" + methodString + " ]";
+    }
 }

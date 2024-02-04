@@ -6,4 +6,10 @@ public class Field {
     public Field(String filedName) {
         this.fieldName = filedName;
     }
+
+    @Override
+    public String toString() {
+        return fieldName;
+    }
+
 }

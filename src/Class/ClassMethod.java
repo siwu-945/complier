@@ -17,4 +17,13 @@ public class ClassMethod {
         this.statements = statements;
     }
 
+    @Override
+    public String toString() {
+        String statementString = "";
+        for (ASTStatement statement : statements) {
+            statementString += statement;
+        }
+        return statementString;
+    }
+
 }

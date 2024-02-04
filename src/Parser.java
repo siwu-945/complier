@@ -222,11 +222,11 @@ public class Parser {
         //parse name
         if (lines[0].startsWith("class ")) {
             int classNameIndex = lines[0].indexOf('[');
-            name = lines[0].substring(6, classNameIndex - 2);
+            name = lines[0].substring(6, classNameIndex).trim();
         }
         //parse fields
-        if (lines[1].startsWith("fields ") && lines[1].length() > 7) {
-            String fieldsName = lines[1].substring(7);
+        if (lines[1].trim().startsWith("fields ") && lines[1].length() > 7) {
+            String fieldsName = lines[1].trim().substring(7);
             for (String fieldName : fieldsName.split(",")) {
                 fieldList.add(new Field(fieldName));
             }
@@ -234,16 +234,17 @@ public class Parser {
 
         //parse methods
         int currentLine = 2;
-        while (lines.length > currentLine) {
+        while (!lines[currentLine].startsWith("]")) {
             ClassMethod methodInfo;
             ASTExpression methodExp = null;
-            if (lines[currentLine].startsWith("method ")) {
+            String currentLineString = lines[currentLine].trim();
+            if (currentLineString.startsWith("method ")) {
                 int methodEnd = lines[currentLine].indexOf(')');
-                String newMethod = "^" + "this." + lines[currentLine].substring(7, methodEnd);
+                String newMethod = "^" + "this." + currentLineString.substring(7, methodEnd);
                 //TODO: what to do with methodExp?
                 methodExp = parseExpr(newMethod).getFirst();
-                int localIndex = lines[currentLine].indexOf("locals");
-                String localVariables = lines[currentLine].substring(localIndex + 1);
+                int localIndex = currentLineString.indexOf("locals");
+                String localVariables = currentLineString.substring(localIndex + 1);
                 for (String variableName : localVariables.split(",")) {
                     localVar.add(new Variable(variableName));
                 }
@@ -252,6 +253,7 @@ public class Parser {
             statementList.add(parseStatement(lines[currentLine].trim()));
             methodInfo = new ClassMethod(methodExp, localVar, statementList);
             methodList.add(methodInfo);
+            currentLine++;
         }
 
         return new ClassNode(name, fieldList, methodList);

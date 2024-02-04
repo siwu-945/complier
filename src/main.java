@@ -1,59 +1,40 @@
-import AST.ASTStatement;
 import BasicBlock.BasicBlock;
+import Class.ClassNode;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
-import Program.GlobalDataSegment;
 
 import java.util.ArrayList;
 
 public class main {
     public static void main(String[] args) {
-        //TODO: fix this arth
-        String code = "(3 + (10 + 3))";
-//
-//        ASTExpression myExp = myParser.parseExpr(code).getFirst();
 
-//        System.out.println(myExp);
-
-        String methods = "^object.myFunc(3, 4, 5)";
-//        ASTExpression myMethods = myParser.parseExpr(methods).getFirst();
-//        System.out.println(myMethods);
-
-//        String myblock = "if (3 + 10): { \n" +
-//                "print(3)\n" +
-//                "}";
-
-        String test = "x = (3 + (3 * 5))";
-//
-        String test2 = "x = ((3 + 3) * 5)";
-//        ArrayList<ASTStatement> myStatements = myParser.parseStatementBlock(test);
-//        for (ASTStatement stat : myStatements) {
-//            System.out.println(stat);
-//
-//        }
-
-        String irTest2 = "    x = (4 + 5)\n" +
-                "    x = 73\n" +
-                "    y = ((4 + 5) + 3)\n" +
-                " print(3)";
         String irTest1 =
                 "    y = ((3 + 5) * 6)\n" +
                         " print(3)";
+
+        String irClassTest = "class A [\n" +
+                "    fields x\n" +
+                "    method m() with locals x, y:\n" +
+                "      x = 3 + 3\n" +
+                "]";
 
         Parser myParser = new Parser();
         TransformIR myIR = new TransformIR();
         ArrayList<BasicBlock> myBlocks = new ArrayList<BasicBlock>();
         ArrayList<IRStatement> myIRStatements = new ArrayList<>();
 
-        ArrayList<ASTStatement> codeToStas = myParser.parseStatementBlock(irTest1);
-        GlobalDataSegment classArrays = myParser.checkForClass(codeToStas);
-        myBlocks.add(new BasicBlock(myIRStatements, "initial"));
-        myIR.addToBB(codeToStas, myBlocks, "initial");
-        for (BasicBlock block : myBlocks) {
-            for (IRStatement irLine : block.getIRStatements()) {
-                System.out.println(irLine);
-            }
-        }
+        ClassNode myClass = myParser.parseClass(irClassTest);
+        System.out.println(myClass);
+
+//        ArrayList<ASTStatement> codeToStas = myParser.parseStatementBlock(irTest1);
+//        GlobalDataSegment classArrays = myParser.checkForClass(codeToStas);
+//        myBlocks.add(new BasicBlock(myIRStatements, "initial"));
+//        myIR.addToBB(codeToStas, myBlocks, "initial");
+//        for (BasicBlock block : myBlocks) {
+//            for (IRStatement irLine : block.getIRStatements()) {
+//                System.out.println(irLine);
+//            }
+//        }
 
     }
 }
