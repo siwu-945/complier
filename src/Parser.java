@@ -102,13 +102,7 @@ public class Parser {
     }
 
     public ASTStatement parseStatement(String line) {
-        String[] lines = line.split("\n");
-        ArrayList<String> statements = new ArrayList<>();
-        for (String state : lines) {
-            statements.add(state);
-        }
         line = line.trim();
-
         if (line.startsWith("if ")) {
             int ifEnd = line.indexOf(':');
             ASTExpression ifExp;
@@ -118,12 +112,9 @@ public class Parser {
             } else {
                 ifExp = parseExpr(line.substring(3, ifEnd - 1)).getFirst();
             }
-            statements.remove(0);
 
             List<ASTStatement> trueBranch = new ArrayList<>();
-            while (statements.size() != 0) {
-                trueBranch.add(parseStatement(statements.get(0)));
-            }
+
             return new IfStatement(ifExp, trueBranch, trueBranch);
         } else if (line.startsWith("while ")) {
             int whileEnd = line.indexOf(':');
@@ -134,12 +125,8 @@ public class Parser {
             } else {
                 whileExp = parseExpr(line.substring(3, whileEnd - 1)).getFirst();
             }
-            statements.remove(0);
 
             List<ASTStatement> whileBranch = new ArrayList<>();
-            while (statements.size() != 0) {
-                whileBranch.add(parseStatement(statements.get(0)));
-            }
             return new WhileStatement(whileExp, whileBranch);
 
         } else if (line.startsWith("ifonly ")) {
@@ -151,12 +138,9 @@ public class Parser {
             } else {
                 ifExp = parseExpr(line.substring(7, ifEnd - 1)).getFirst();
             }
-            statements.remove(0);
 
             List<ASTStatement> trueBranch = new ArrayList<>();
-            while (statements.size() != 0) {
-                trueBranch.add(parseStatement(statements.get(0)));
-            }
+
             return new IfStatement(ifExp, trueBranch, trueBranch);
         } else if (line.startsWith("return ")) {
             int returnEnd = line.indexOf(')');
@@ -196,6 +180,7 @@ public class Parser {
 
     }
 
+
     public ArrayList<ASTStatement> parseStatementBlock(String codeBlock) {
         String[] lines = codeBlock.split("\n");
         ArrayList<ASTStatement> statementsBlock = new ArrayList<>();
@@ -214,8 +199,6 @@ public class Parser {
         String[] lines = line.split("\n");
         ArrayList<ClassMethod> methodList = new ArrayList<>();
         ArrayList<Field> fieldList = new ArrayList<>();
-        ArrayList<Variable> localVar = new ArrayList<>();
-        ArrayList<ASTStatement> statementList = new ArrayList<>();
 
 
         String name = "";
@@ -234,25 +217,31 @@ public class Parser {
 
         //parse methods
         int currentLine = 2;
+        ArrayList<ASTStatement> statementList = new ArrayList<>();
+        ArrayList<Variable> localVar = new ArrayList<>();
+
         while (!lines[currentLine].startsWith("]")) {
             ClassMethod methodInfo;
-            ASTExpression methodExp = null;
+            String methodName = "";
             String currentLineString = lines[currentLine].trim();
             if (currentLineString.startsWith("method ")) {
-                int methodEnd = lines[currentLine].indexOf(')');
-                String newMethod = "^" + "this." + currentLineString.substring(7, methodEnd);
-                //TODO: what to do with methodExp?
-                methodExp = parseExpr(newMethod).getFirst();
+                statementList = new ArrayList<>();
+                localVar = new ArrayList<>();
+                int methodEnd = lines[currentLine].trim().indexOf(')');
+                methodName = currentLineString.substring(7, methodEnd - 1);
                 int localIndex = currentLineString.indexOf("locals");
-                String localVariables = currentLineString.substring(localIndex + 1);
+                String localVariables = currentLineString.substring(localIndex + 7);
                 for (String variableName : localVariables.split(",")) {
                     localVar.add(new Variable(variableName));
                 }
                 currentLine++;
             }
-            statementList.add(parseStatement(lines[currentLine].trim()));
-            methodInfo = new ClassMethod(methodExp, localVar, statementList);
-            methodList.add(methodInfo);
+            String statementLine = lines[currentLine].trim();
+            statementList.add(parseStatement(statementLine));
+            if (!methodName.equals("")) {
+                methodInfo = new ClassMethod(methodName, localVar, statementList);
+                methodList.add(methodInfo);
+            }
             currentLine++;
         }
 
@@ -268,6 +257,16 @@ public class Parser {
             }
         }
         return arrays;
+
+    }
+
+    public void readingSource(String line) {
+        String[] lines = line.split("\n");
+        ArrayList<String> statements = new ArrayList<>();
+        for (String state : lines) {
+            statements.add(state.trim());
+        }
+
 
     }
 }
