@@ -1,5 +1,6 @@
 import AST.ASTStatement;
 import BasicBlock.BasicBlock;
+import Class.ClassNode;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
 import Program.GlobalDataSegment;
@@ -37,8 +38,8 @@ public class main {
         ArrayList<BasicBlock> myBlocks = new ArrayList<BasicBlock>();
         ArrayList<IRStatement> myIRStatements = new ArrayList<>();
 
-//        ClassNode myClass = myParser.parseClass(irClassTest);
-//        System.out.println(myClass);
+        ClassNode myClass = myParser.parseClass(irClassTest);
+        System.out.println(myClass);
 
         ArrayList<ASTStatement> codeToStas = myParser.parseStatementBlock(irTest1);
         GlobalDataSegment classArrays = myParser.checkForClass(codeToStas);

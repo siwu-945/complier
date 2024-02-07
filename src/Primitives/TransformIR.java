@@ -3,9 +3,12 @@ package Primitives;
 import AST.ASTExpression;
 import AST.ASTStatement;
 import BasicBlock.BasicBlock;
+import Class.ClassNode;
 import Expressions.ArithmeticExpression;
+import Expressions.ClassExpr;
 import Expressions.Number;
 import Statement.Assignment;
+import Statement.FieldUpdate;
 
 import java.util.ArrayList;
 
@@ -15,7 +18,6 @@ public class TransformIR {
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
 
         if (expr instanceof ArithmeticExpression) {
-
             String leftVar = exprToIR(((ArithmeticExpression) expr).getLeft(), currentBlock);
             String rightVar = exprToIR(((ArithmeticExpression) expr).getRight(), currentBlock);
             Character op = ((ArithmeticExpression) expr).getOp();
@@ -30,6 +32,14 @@ public class TransformIR {
             IRAssignment newAssign = new IRAssignment(newVar, expr.toString());
             currentBlock.addIRStatement(newAssign);
         }
+        //TODO: Incomplete implementation of @Foo
+        else if (expr instanceof ClassExpr) {
+            tmpVar++;
+            String tmpName = Integer.toString(tmpVar);
+            IRVariable newVar = new IRVariable(tmpName);
+
+
+        }
 
         return "%" + Integer.toString(tmpVar);
     }
@@ -39,6 +49,15 @@ public class TransformIR {
 
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
+                if (statement.getExpr() instanceof ClassExpr) {
+                    int x = 1 + 1;
+                } else {
+                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
+                    String tmpVar = exprToIR(statement.getExpr(), currentBlock);
+                    IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
+                    currentBlock.addIRStatement(newIR);
+                }
+            } else if (statement instanceof FieldUpdate) {
                 IRVariable variableNode = new IRVariable(statement.getVariable().toString());
                 String tmpVar = exprToIR(statement.getExpr(), currentBlock);
                 IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
@@ -55,5 +74,12 @@ public class TransformIR {
             }
         }
         throw new IllegalArgumentException("Block not found: " + cur);
+    }
+
+    public ArrayList<IRStatement> classToIr(ClassNode newClass) {
+        ArrayList<IRStatement> IRStatements = new ArrayList<>();
+        IRStatement initClass0 = new IRSLine(newClass.getClassName() + "(this):");
+        IRStatement initClass1 = new IRSLine("%this & 1");
+        return IRStatements;
     }
 }

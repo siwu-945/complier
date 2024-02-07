@@ -1,11 +1,14 @@
 import AST.ASTExpression;
 import AST.ASTStatement;
+import BasicBlock.BasicBlock;
 import Class.ClassMethod;
 import Class.ClassNode;
 import Class.Field;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
+import Primitives.IRStatement;
+import Primitives.TransformIR;
 import Program.GlobalDataSegment;
 import Statement.*;
 
@@ -74,6 +77,9 @@ public class Parser {
             String name = input.substring(dotIndex + 1);
 
             return new Pair<>(new FieldRead(objectExpr, name), "");
+        } else if (input.startsWith("@")) {
+            String className = input.substring(1);
+            return new Pair<>(new ClassExpr(className), "");
         }
         // Handle other cases or throw an error
         throw new IllegalArgumentException("Invalid expression: " + input);
@@ -167,6 +173,12 @@ public class Parser {
                 printExp = parseExpr(line.substring(5)).getFirst();
             }
             return new PrintStatement(printExp);
+        } else if (line.startsWith("!")) {
+            //TODO: parse fieldUpdate
+            int eEnd = line.indexOf('.');
+            ASTExpression e = new ClassExpr("wuhu");
+            String f = "f";
+            return new FieldUpdate(e, f);
         } else {
             int assignIndex = line.indexOf('=');
             String variableName = line.substring(0, assignIndex - 1).trim();
@@ -199,7 +211,6 @@ public class Parser {
         String[] lines = line.split("\n");
         ArrayList<ClassMethod> methodList = new ArrayList<>();
         ArrayList<Field> fieldList = new ArrayList<>();
-
 
         String name = "";
         //parse name
@@ -260,13 +271,58 @@ public class Parser {
 
     }
 
-    public void readingSource(String line) {
-        String[] lines = line.split("\n");
-        ArrayList<String> statements = new ArrayList<>();
-        for (String state : lines) {
-            statements.add(state.trim());
+    public int[] findClassStart(ArrayList<String> lines) {
+        int[] indexs = new int[2];
+        indexs[0] = -999;
+
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.startsWith("class")) {
+                indexs[0] = i;
+            } else if (line.startsWith("]")) {
+                indexs[1] = i;
+            }
+        }
+        return indexs;
+    }
+
+    public ArrayList<BasicBlock> readingSource(String codeBlock) {
+        ArrayList<BasicBlock> blocks = new ArrayList<>();
+        TransformIR irTransformer = new TransformIR();
+        boolean inLoop = true;
+        ArrayList<String> lines = new ArrayList<>();
+        for (String line : codeBlock.split("\n")) {
+            lines.add(line.trim());
+        }
+
+        int currentLine = 0;
+        while (inLoop) {
+            int[] classIndex = findClassStart(lines);
+            //parse classes
+            if (classIndex[0] != -999) {
+                String classString = completeClassString(classIndex, lines);
+                ClassNode newClass = parseClass(classString);
+                ArrayList<IRStatement> IRStatements = irTransformer.classToIr(newClass);
+
+                BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName());
+                blocks.add(classBlock);
+                currentLine = classIndex[1] + 1;
+            } else {
+                currentLine++;
+            }
         }
 
 
+        return blocks;
+    }
+
+    public String completeClassString(int[] classIndex, ArrayList<String> lines) {
+        int start = classIndex[0];
+        int end = classIndex[1];
+        String classString = "";
+        for (int i = start; i < end; i++) {
+            classString += lines.get(i);
+        }
+        return classString;
     }
 }
