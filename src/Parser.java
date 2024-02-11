@@ -13,6 +13,7 @@ import Program.GlobalDataSegment;
 import Statement.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -155,7 +156,7 @@ public class Parser {
                 String subExp = line.substring(3, returnEnd);
                 returnExp = parseExpr(subExp).getFirst();
             } else {
-                returnExp = parseExpr(line.substring(7, returnEnd - 1)).getFirst();
+                returnExp = parseExpr(line.substring(7)).getFirst();
             }
 
             return new ReturnStatement(returnExp);
@@ -271,48 +272,71 @@ public class Parser {
 
     }
 
-    public int[] findClassStart(ArrayList<String> lines) {
+    public int[] findClassStart(ArrayList<String> lines, int start) {
         int[] indexs = new int[2];
         indexs[0] = -999;
 
-        for (int i = 0; i < lines.size(); i++) {
+        for (int i = start; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.startsWith("class")) {
                 indexs[0] = i;
             } else if (line.startsWith("]")) {
                 indexs[1] = i;
+                break;
             }
         }
         return indexs;
     }
 
-    public ArrayList<BasicBlock> readingSource(String codeBlock) {
-        ArrayList<BasicBlock> blocks = new ArrayList<>();
+    public HashMap<String, BasicBlock> readingSource(String codeBlock) {
+        HashMap<String, BasicBlock> blocks = new HashMap<String, BasicBlock>();
         TransformIR irTransformer = new TransformIR();
         boolean inLoop = true;
         ArrayList<String> lines = new ArrayList<>();
+        ArrayList<ASTStatement> statements = new ArrayList<>();
+        ArrayList<IRStatement> myIRStatements = new ArrayList<>();
+
+
         for (String line : codeBlock.split("\n")) {
             lines.add(line.trim());
         }
 
+        int[] classIndex = findClassStart(lines, 0);
         int currentLine = 0;
         while (inLoop) {
-            int[] classIndex = findClassStart(lines);
             //parse classes
             if (classIndex[0] != -999) {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
-                ArrayList<IRStatement> IRStatements = irTransformer.classToIr(newClass);
+
+                ArrayList<IRStatement> IRStatements = irTransformer.initClass(newClass);
 
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName());
-                blocks.add(classBlock);
+                blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
+
+//                ArrayList<String> nextClassLines = new ArrayList<>();
+//                for (int x = currentLine; x < lines.size(); x++) {
+//                    nextClassLines.add(lines.get(x));
+//                }
+                classIndex = findClassStart(lines, currentLine);
+                if (classIndex[0] == -999) {
+                    currentLine++;
+                }
+            } else if (lines.get(currentLine).startsWith("main ")) {
+                currentLine++;
             } else {
+                ASTStatement statement = parseStatement(lines.get(currentLine));
+                statements.add(statement);
+                BasicBlock statementBlock = new BasicBlock(myIRStatements, "main");
+                irTransformer.transformToIR(statements, statementBlock);
+                blocks.put("main", statementBlock);
                 currentLine++;
             }
+            if (currentLine == lines.size()) {
+                inLoop = false;
+            }
         }
-
-
         return blocks;
     }
 
@@ -320,8 +344,11 @@ public class Parser {
         int start = classIndex[0];
         int end = classIndex[1];
         String classString = "";
-        for (int i = start; i < end; i++) {
+        for (int i = start; i < end + 1; i++) {
             classString += lines.get(i);
+            if (i < end) {
+                classString += "\n";
+            }
         }
         return classString;
     }

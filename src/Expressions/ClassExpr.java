@@ -11,6 +11,6 @@ public class ClassExpr extends ASTExpression {
 
     @Override
     public String toString() {
-        return null;
+        return "@" + className;
     }
 }

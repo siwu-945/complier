@@ -4,6 +4,7 @@ import AST.ASTExpression;
 import AST.ASTStatement;
 import BasicBlock.BasicBlock;
 import Class.ClassNode;
+import ControlTransfer.Conditional;
 import Expressions.ArithmeticExpression;
 import Expressions.ClassExpr;
 import Expressions.Number;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 
 public class TransformIR {
     int tmpVar = 0;
+    int labelInt = 1;
 
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
 
@@ -66,6 +68,28 @@ public class TransformIR {
         }
     }
 
+    public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock) {
+        for (ASTStatement statement : statements) {
+            if (statement instanceof Assignment) {
+                if (statement.getExpr() instanceof ClassExpr) {
+                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
+                    IRAlloc newAlloc = new IRAlloc(variableNode, 3);
+                    currentBlock.addIRStatement(newAlloc);
+                } else {
+                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
+                    String tmpVar = exprToIR(statement.getExpr(), currentBlock);
+                    IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
+                    currentBlock.addIRStatement(newIR);
+                }
+            } else if (statement instanceof FieldUpdate) {
+                IRVariable variableNode = new IRVariable(statement.getVariable().toString());
+                String tmpVar = exprToIR(statement.getExpr(), currentBlock);
+                IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
+                currentBlock.addIRStatement(newIR);
+            }
+        }
+    }
+
 
     private BasicBlock findBlockByName(ArrayList<BasicBlock> bs, String cur) {
         for (BasicBlock b : bs) {
@@ -76,10 +100,21 @@ public class TransformIR {
         throw new IllegalArgumentException("Block not found: " + cur);
     }
 
-    public ArrayList<IRStatement> classToIr(ClassNode newClass) {
+    public ArrayList<IRStatement> initClass(ClassNode newClass) {
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
         IRStatement initClass0 = new IRSLine(newClass.getClassName() + "(this):");
-        IRStatement initClass1 = new IRSLine("%this & 1");
+        IRVariable var = new IRVariable("%" + Integer.toString(tmpVar));
+        IRAssignment checkPtrBoolean = new IRAssignment(var, "%this & 1");
+        Conditional newCondition = new Conditional("badptr", "l" + labelInt, var);
+        labelInt++;
+        tmpVar++;
+        IRStatements.add(initClass0);
+        IRStatements.add(checkPtrBoolean);
+        IRStatements.add(newCondition);
         return IRStatements;
+    }
+
+    public ArrayList<IRStatement> ptrCheck(ClassNode newClass) {
+        return new ArrayList<IRStatement>();
     }
 }
