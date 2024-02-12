@@ -3,7 +3,7 @@ import Primitives.IRStatement;
 import Primitives.TransformIR;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 public class main {
     public static void main(String[] args) {
@@ -30,7 +30,7 @@ public class main {
                 "      return &this.x\n" +
                 "]\n" +
                 "class B [\n" +
-                "    fields y\n" +
+                "    fields a, b, x\n" +
                 "    method m() with locals:\n" +
                 "      return 0\n" +
                 "]\n" +
@@ -54,8 +54,55 @@ public class main {
 //                System.out.println(irLine);
 //            }
 //        }
-        HashMap<String, BasicBlock> blocks = myParser.readingSource(wholeSource);
-        System.out.println(blocks.get("main").getName());
 
+        Map<String, BasicBlock> blocks = myParser.readingSource(wholeSource);
+        Map<String, ArrayList<String>> totalFields = myParser.generateFields(wholeSource);
+        ArrayList<String> vtbleNames = new ArrayList<>();
+        ArrayList<String> globalArray = new ArrayList<>();
+
+        blocks.forEach((key, value) -> {
+            if (!key.equals("main")) {
+                vtbleNames.add(key);
+            }
+        });
+
+        for (String tbleName : vtbleNames) {
+            ArrayList<String> fields = totalFields.get(tbleName);
+            for (int i = 2; i < fields.size(); i++) {
+                if (!globalArray.contains(fields.get(i))) {
+                    globalArray.add(fields.get(i));
+                }
+            }
+        }
+        int fieldSize = globalArray.size();
+        int[] fieldsX = new int[fieldSize];
+        for (String tbleName : vtbleNames) {
+            ArrayList<String> fields = totalFields.get(tbleName);
+            fields.remove(0);
+            fields.remove(0);
+            for (int i = 0; i < fieldSize; i++) {
+                String currentField = globalArray.get(i);
+                int fieldID = fields.indexOf(currentField) + 2;
+                if (fieldID > 1) {
+                    fieldsX[i] = fieldID;
+                } else {
+                    fieldsX[i] = 0;
+                }
+            }
+            System.out.println(generateFieldParameter(fieldsX));
+            fieldsX = new int[fieldSize];
+        }
+    }
+
+    private static String generateFieldParameter(int[] field) {
+        String para = "";
+        for (int i = 0; i < field.length; i++) {
+            if (i != field.length - 1) {
+                para += field[i] + " , ";
+            } else {
+                para += field[i];
+            }
+        }
+        return para;
     }
 }

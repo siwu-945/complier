@@ -8,12 +8,12 @@ import java.util.ArrayList;
 
 public class ClassNode extends ASTStatement {
     String className;
-    ArrayList<Field> fields;
+    ArrayList<String> fields;
     ArrayList<ClassMethod> methods;
     ArrayList<Variable> localVar;
 
 
-    public ClassNode(String className, ArrayList<Field> fields, ArrayList<ClassMethod> methods) {
+    public ClassNode(String className, ArrayList<String> fields, ArrayList<ClassMethod> methods) {
         this.className = className;
         this.fields = fields;
         this.methods = methods;
@@ -35,8 +35,8 @@ public class ClassNode extends ASTStatement {
 
     private String filedsString() {
         String fieldString = "";
-        for (Field field : fields) {
-            fieldString += field.toString();
+        for (String field : fields) {
+            fieldString += field;
         }
         return fieldString;
     }
@@ -54,5 +54,9 @@ public class ClassNode extends ASTStatement {
         String filedsString = filedsString();
         String methodString = methodString();
         return "class: " + className + "\n" + "[ " + "fields : " + filedsString + "\n" + methodString + " ]";
+    }
+
+    public ArrayList<String> getFields() {
+        return fields;
     }
 }

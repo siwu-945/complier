@@ -3,7 +3,6 @@ import AST.ASTStatement;
 import BasicBlock.BasicBlock;
 import Class.ClassMethod;
 import Class.ClassNode;
-import Class.Field;
 import Expressions.Number;
 import Expressions.Object;
 import Expressions.*;
@@ -12,9 +11,7 @@ import Primitives.TransformIR;
 import Program.GlobalDataSegment;
 import Statement.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -211,7 +208,7 @@ public class Parser {
     public ClassNode parseClass(String line) {
         String[] lines = line.split("\n");
         ArrayList<ClassMethod> methodList = new ArrayList<>();
-        ArrayList<Field> fieldList = new ArrayList<>();
+        ArrayList<String> fieldList = new ArrayList<>();
 
         String name = "";
         //parse name
@@ -223,7 +220,7 @@ public class Parser {
         if (lines[1].trim().startsWith("fields ") && lines[1].length() > 7) {
             String fieldsName = lines[1].trim().substring(7);
             for (String fieldName : fieldsName.split(",")) {
-                fieldList.add(new Field(fieldName));
+                fieldList.add(fieldName.trim());
             }
         }
 
@@ -288,8 +285,8 @@ public class Parser {
         return indexs;
     }
 
-    public HashMap<String, BasicBlock> readingSource(String codeBlock) {
-        HashMap<String, BasicBlock> blocks = new HashMap<String, BasicBlock>();
+    public Map<String, BasicBlock> readingSource(String codeBlock) {
+        Map<String, BasicBlock> blocks = new LinkedHashMap<String, BasicBlock>();
         TransformIR irTransformer = new TransformIR();
         boolean inLoop = true;
         ArrayList<String> lines = new ArrayList<>();
@@ -314,11 +311,6 @@ public class Parser {
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName());
                 blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
-
-//                ArrayList<String> nextClassLines = new ArrayList<>();
-//                for (int x = currentLine; x < lines.size(); x++) {
-//                    nextClassLines.add(lines.get(x));
-//                }
                 classIndex = findClassStart(lines, currentLine);
                 if (classIndex[0] == -999) {
                     currentLine++;
@@ -351,5 +343,44 @@ public class Parser {
             }
         }
         return classString;
+    }
+
+    public Map<String, ArrayList<String>> generateFields(String codeBlock) {
+        ArrayList<String> lines = new ArrayList<>();
+        HashMap<String, ArrayList<String>> fieldMap = new LinkedHashMap<>();
+
+        for (String line : codeBlock.split("\n")) {
+            lines.add(line.trim());
+        }
+
+        int[] classIndex = findClassStart(lines, 0);
+        int currentLine = 0;
+        boolean inLoop = true;
+        while (inLoop) {
+            if (classIndex[0] != -999) {
+                ArrayList<String> fieldArray = new ArrayList<>();
+                String classString = completeClassString(classIndex, lines);
+                ClassNode newClass = parseClass(classString);
+
+                //pointer to vtble
+                fieldArray.add("vtbl" + newClass.getClassName());
+
+                //pointer to field array
+                fieldArray.add("fmap" + newClass.getClassName());
+
+                ArrayList<String> fields = newClass.getFields();
+                for (String field : fields) {
+                    fieldArray.add(field);
+                }
+
+                fieldMap.put(newClass.getClassName(), fieldArray);
+                currentLine = classIndex[1] + 1;
+                classIndex = findClassStart(lines, currentLine);
+                if (classIndex[0] == -999) {
+                    inLoop = false;
+                }
+            }
+        }
+        return fieldMap;
     }
 }

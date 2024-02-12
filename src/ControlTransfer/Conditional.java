@@ -12,4 +12,9 @@ public class Conditional extends ControlTransfer {
         this.falseBlock = falseBlock;
         this.variable = variable;
     }
+
+    @Override
+    public String toString() {
+        return "if " + variable.toString() + " then " + trueBlock + " else " + falseBlock;
+    }
 }

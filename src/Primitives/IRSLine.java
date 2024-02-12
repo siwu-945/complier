@@ -7,4 +7,9 @@ public class IRSLine extends IRStatement {
     public IRSLine(String statement) {
         this.statement = statement;
     }
+
+    @Override
+    public String toString() {
+        return statement;
+    }
 }
