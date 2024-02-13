@@ -30,4 +30,8 @@ public class ClassMethod {
         return statementString;
     }
 
+    public String getMethodName() {
+        return methodExp;
+    }
+
 }

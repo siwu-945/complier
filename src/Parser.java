@@ -292,6 +292,8 @@ public class Parser {
         ArrayList<String> lines = new ArrayList<>();
         ArrayList<ASTStatement> statements = new ArrayList<>();
         ArrayList<IRStatement> myIRStatements = new ArrayList<>();
+        BasicBlock statementBlock = new BasicBlock(myIRStatements, "main");
+        blocks.put("main", statementBlock);
 
 
         for (String line : codeBlock.split("\n")) {
@@ -320,15 +322,13 @@ public class Parser {
             } else {
                 ASTStatement statement = parseStatement(lines.get(currentLine));
                 statements.add(statement);
-                BasicBlock statementBlock = new BasicBlock(myIRStatements, "main");
-                irTransformer.transformToIR(statements, statementBlock);
-                blocks.put("main", statementBlock);
                 currentLine++;
             }
             if (currentLine == lines.size()) {
                 inLoop = false;
             }
         }
+        irTransformer.transformToIR(statements, statementBlock);
         return blocks;
     }
 
@@ -382,5 +382,34 @@ public class Parser {
             }
         }
         return fieldMap;
+    }
+
+    public Map<String, ArrayList<String>> generateMethods(String codeBlock) {
+        ArrayList<String> lines = new ArrayList<>();
+        HashMap<String, ArrayList<String>> methodMap = new LinkedHashMap<>();
+
+        for (String line : codeBlock.split("\n")) {
+            lines.add(line.trim());
+        }
+
+        int[] classIndex = findClassStart(lines, 0);
+        int currentLine = 0;
+        boolean inLoop = true;
+        while (inLoop) {
+            if (classIndex[0] != -999) {
+                String classString = completeClassString(classIndex, lines);
+                ClassNode newClass = parseClass(classString);
+
+                ArrayList<String> methods = newClass.getMethodsNames();
+
+                methodMap.put(newClass.getClassName(), methods);
+                currentLine = classIndex[1] + 1;
+                classIndex = findClassStart(lines, currentLine);
+                if (classIndex[0] == -999) {
+                    inLoop = false;
+                }
+            }
+        }
+        return methodMap;
     }
 }

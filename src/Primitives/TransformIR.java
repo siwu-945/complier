@@ -24,12 +24,12 @@ public class TransformIR {
             String rightVar = exprToIR(((ArithmeticExpression) expr).getRight(), currentBlock);
             Character op = ((ArithmeticExpression) expr).getOp();
             tmpVar++;
-            IRVariable newVar = new IRVariable(Integer.toString(tmpVar));
+            IRVariable newVar = new IRVariable("%" + Integer.toString(tmpVar));
             IRAssignment newIR = new IRAssignment(newVar, leftVar + " " + op + " " + rightVar);
             currentBlock.addIRStatement(newIR);
         } else if (expr instanceof Number) {
             tmpVar++;
-            String tmpName = Integer.toString(tmpVar);
+            String tmpName = "%" + Integer.toString(tmpVar);
             IRVariable newVar = new IRVariable(tmpName);
             IRAssignment newAssign = new IRAssignment(newVar, expr.toString());
             currentBlock.addIRStatement(newAssign);
@@ -39,8 +39,6 @@ public class TransformIR {
             tmpVar++;
             String tmpName = Integer.toString(tmpVar);
             IRVariable newVar = new IRVariable(tmpName);
-
-
         }
 
         return "%" + Integer.toString(tmpVar);
@@ -107,7 +105,7 @@ public class TransformIR {
         IRAssignment checkPtrBoolean = new IRAssignment(var, "%this & 1");
         Conditional newCondition = new Conditional("badptr", "l" + labelInt, var);
         labelInt++;
-        tmpVar++;
+//        tmpVar++;
         IRStatements.add(initClass0);
         IRStatements.add(checkPtrBoolean);
         IRStatements.add(newCondition);

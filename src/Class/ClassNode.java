@@ -23,6 +23,10 @@ public class ClassNode extends ASTStatement {
         return className;
     }
 
+    public ArrayList<ClassMethod> getMethods() {
+        return methods;
+    }
+
     @Override
     public ASTExpression getVariable() {
         return null;
@@ -58,5 +62,14 @@ public class ClassNode extends ASTStatement {
 
     public ArrayList<String> getFields() {
         return fields;
+    }
+
+    public ArrayList<String> getMethodsNames() {
+        ArrayList<String> methodNames = new ArrayList<>();
+
+        for (ClassMethod method : methods) {
+            methodNames.add(method.getMethodName());
+        }
+        return methodNames;
     }
 }

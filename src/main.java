@@ -1,12 +1,23 @@
 import BasicBlock.BasicBlock;
 import Primitives.IRStatement;
-import Primitives.TransformIR;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 public class main {
     private static String generateFieldParameter(int[] field) {
+        String para = "";
+        for (int i = 0; i < field.length; i++) {
+            if (i != field.length - 1) {
+                para += field[i] + " , ";
+            } else {
+                para += field[i];
+            }
+        }
+        return para;
+    }
+
+    private static String generateMethodParameter(String[] field) {
         String para = "";
         for (int i = 0; i < field.length; i++) {
             if (i != field.length - 1) {
@@ -30,6 +41,19 @@ public class main {
         return vtbleNames;
     }
 
+    private static ArrayList<String> generateGlobalVtbleArray(ArrayList<String> vtbleNames, Map<String, ArrayList<String>> totalMethods) {
+        ArrayList<String> globalVtbleMethod = new ArrayList<>();
+        for (String tbleName : vtbleNames) {
+            ArrayList<String> methods = totalMethods.get(tbleName);
+            for (int i = 0; i < methods.size(); i++) {
+                if (!globalVtbleMethod.contains(methods.get(i))) {
+                    globalVtbleMethod.add(methods.get(i));
+                }
+            }
+        }
+        return globalVtbleMethod;
+    }
+
     private static ArrayList<String> generateGlobalFieldArray(ArrayList<String> vtbleNames, Map<String, ArrayList<String>> totalFields) {
         ArrayList<String> globalArray = new ArrayList<>();
         for (String tbleName : vtbleNames) {
@@ -43,7 +67,29 @@ public class main {
         return globalArray;
     }
 
-    private static ArrayList<String> generateGlobalArrayString(ArrayList<String> globalArray, Map<String, ArrayList<String>> totalFields, ArrayList<String> vtbleNames) {
+    private static ArrayList<String> generateGlobalMethodString(ArrayList<String> globalVtbleArray, Map<String, ArrayList<String>> totalMethods, ArrayList<String> vtbleNames) {
+        ArrayList globalArrayList = new ArrayList();
+        int methodSizze = globalVtbleArray.size();
+        String[] methodX = new String[methodSizze];
+        for (String tbleName : vtbleNames) {
+            ArrayList<String> method = totalMethods.get(tbleName);
+
+            for (int i = 0; i < methodSizze; i++) {
+                String currentMethod = globalVtbleArray.get(i);
+                int fieldID = method.indexOf(currentMethod);
+                if (fieldID > -1) {
+                    methodX[i] = currentMethod;
+                } else {
+                    methodX[i] = "0";
+                }
+            }
+            globalArrayList.add(String.format("global array vtble%s: { %s }", tbleName, generateMethodParameter(methodX)));
+            methodX = new String[methodSizze];
+        }
+        return globalArrayList;
+    }
+
+    private static ArrayList<String> generateGlobalFieldArrayString(ArrayList<String> globalArray, Map<String, ArrayList<String>> totalFields, ArrayList<String> vtbleNames) {
         ArrayList globalArrayList = new ArrayList();
         int fieldSize = globalArray.size();
         int[] fieldsX = new int[fieldSize];
@@ -93,24 +139,44 @@ public class main {
                 "    fields a, b, x\n" +
                 "    method m() with locals:\n" +
                 "      return 0\n" +
+                "    method b() with locals:\n" +
+                "      return 3\n" +
                 "]\n" +
                 "\n" +
-                "main with x:\n" +
-                "x = @A";
+                "main with x, y:\n" +
+                "    x = (4 + 5)\n" +
+                "    x = 73\n" +
+                "    y = (4 + 5)";
+
         Parser myParser = new Parser();
-        TransformIR myIR = new TransformIR();
-        ArrayList<BasicBlock> myBlocks = new ArrayList<BasicBlock>();
-        ArrayList<IRStatement> myIRStatements = new ArrayList<>();
 
         Map<String, BasicBlock> blocks = myParser.readingSource(wholeSource);
+
         Map<String, ArrayList<String>> totalFields = myParser.generateFields(wholeSource);
+        Map<String, ArrayList<String>> totalMethods = myParser.generateMethods(wholeSource);
+
 
         ArrayList<String> vtbleNames = getTbleNames(blocks);
-        ArrayList<String> globalArray = generateGlobalFieldArray(vtbleNames, totalFields);
-        ArrayList<String> globalArrayLists = generateGlobalArrayString(globalArray, totalFields, vtbleNames);
+        ArrayList<String> globalFieldArray = generateGlobalFieldArray(vtbleNames, totalFields);
+        ArrayList<String> fieldArrayStrings = generateGlobalFieldArrayString(globalFieldArray, totalFields, vtbleNames);
 
-        for (String array : globalArrayLists) {
-            System.out.println(array);
+        ArrayList<String> globalVtbleArray = generateGlobalVtbleArray(vtbleNames, totalMethods);
+        ArrayList<String> vtbleArrayString = generateGlobalMethodString(globalVtbleArray, totalMethods, vtbleNames);
+        // print global array
+        for (String arrayString : fieldArrayStrings) {
+            System.out.println(arrayString);
+        }
+
+        for (String methodString : vtbleArrayString) {
+            System.out.println(methodString);
+        }
+
+        //print main
+        ArrayList<IRStatement> mainBlockIR = blocks.get("main").getIRStatements();
+        System.out.println("main:");
+
+        for (IRStatement statement : mainBlockIR) {
+            System.out.println("    " + statement);
         }
     }
 
