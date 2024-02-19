@@ -21,6 +21,6 @@ public class FieldUpdate extends ASTStatement {
 
     @Override
     public ASTExpression getExpr() {
-        return null;
+        return right_e;
     }
 }
