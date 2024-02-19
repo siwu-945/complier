@@ -138,9 +138,10 @@ public class main {
                 "\n" +
                 "main with x, y:\n" +
                 "    x = @a\n" +
+//
                 "    !a.x = 5\n" +
-                "    print(8)\n";
-//                "    print(^x.m())";
+//                "    print(8)\n";
+                "    print(^x.m())";
 
 
         Parser myParser = new Parser();

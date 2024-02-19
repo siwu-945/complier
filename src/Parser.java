@@ -164,6 +164,11 @@ public class Parser {
             ASTExpression printExp;
             int printEnd = line.indexOf(')');
 
+            //TODO: fix this
+            if (printEnd < line.length() - 1) {
+                printEnd = line.length() - 1;
+            }
+
             if (line.charAt(5) == '(') {
                 String exp = line.substring(6, printEnd);
                 printExp = parseExpr(exp).getFirst();
