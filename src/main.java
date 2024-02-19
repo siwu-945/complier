@@ -17,6 +17,15 @@ public class main {
         return para;
     }
 
+
+    private static ArrayList<String> getBlockNames(Map<String, BasicBlock> blocks) {
+        ArrayList<String> blockNames = new ArrayList<>();
+        blocks.forEach((key, value) -> {
+            blockNames.add(key);
+        });
+        return blockNames;
+    }
+
     private static String generateMethodParameter(String[] field) {
         String para = "";
         for (int i = 0; i < field.length; i++) {
@@ -33,7 +42,7 @@ public class main {
         ArrayList<String> vtbleNames = new ArrayList<>();
 
         blocks.forEach((key, value) -> {
-            if (!key.equals("main")) {
+            if (!key.equals("main") && value.getAttribute().equals("class")) {
                 vtbleNames.add(key);
             }
         });
@@ -158,10 +167,11 @@ public class main {
         }
 
         //print main
-        vtbleNames.add("main");
-        for (String tbleName : vtbleNames) {
-            ArrayList<IRStatement> blockIR = blocks.get(tbleName).getIRStatements();
-            System.out.println(tbleName + ":");
+        ArrayList<String> blockNames = getBlockNames(blocks);
+
+        for (String blockName : blockNames) {
+            ArrayList<IRStatement> blockIR = blocks.get(blockName).getIRStatements();
+            System.out.println(blockName + ":");
             for (IRStatement statement : blockIR) {
                 System.out.println("    " + statement);
             }

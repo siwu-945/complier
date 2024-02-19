@@ -11,10 +11,12 @@ import java.util.ArrayList;
 public class BasicBlock {
     private ArrayList<IRStatement> IRStatements;
     private String blockname;
+    private String attribute;
 
-    public BasicBlock(ArrayList<IRStatement> IRStatements, String blockname) {
+    public BasicBlock(ArrayList<IRStatement> IRStatements, String blockname, String attribute) {
         this.IRStatements = IRStatements;
         this.blockname = blockname;
+        this.attribute = attribute;
     }
 
     public void addIRStatement(IRStatement irLine) {
@@ -41,4 +43,7 @@ public class BasicBlock {
         return IRStatements;
     }
 
+    public String getAttribute() {
+        return attribute;
+    }
 }
