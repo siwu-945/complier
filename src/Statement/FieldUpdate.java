@@ -4,12 +4,14 @@ import AST.ASTExpression;
 import AST.ASTStatement;
 
 public class FieldUpdate extends ASTStatement {
-    ASTExpression e;
+    ASTExpression left_e;
     String field;
+    ASTExpression right_e;
 
-    public FieldUpdate(ASTExpression e, String field) {
-        this.e = e;
+    public FieldUpdate(ASTExpression left_e, String field, ASTExpression right_e) {
+        this.left_e = left_e;
         this.field = field;
+        this.right_e = right_e;
     }
 
     @Override

@@ -3,6 +3,7 @@ package Primitives;
 import AST.ASTExpression;
 import AST.ASTStatement;
 import BasicBlock.BasicBlock;
+import Class.ClassMethod;
 import Class.ClassNode;
 import ControlTransfer.Conditional;
 import Expressions.ArithmeticExpression;
@@ -16,6 +17,9 @@ import java.util.ArrayList;
 public class TransformIR {
     int tmpVar = 0;
     int labelInt = 1;
+    int classInt = -1;
+    char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+    int classNum = 0;
 
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
 
@@ -70,9 +74,21 @@ public class TransformIR {
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
-                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                    IRAlloc newAlloc = new IRAlloc(variableNode, 3);
-                    currentBlock.addIRStatement(newAlloc);
+                    classInt++;
+                    String classVar = "%" + alphabet[classInt] + "" + classNum;
+                    IRVariable classVariable = new IRVariable(classVar);
+                    IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
+                    IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
+                    tmpVar++;
+                    String tmpName2 = "%" + tmpVar;
+                    IRVariable fieldIR = new IRVariable(tmpName2);
+                    IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
+                    IRStore storeField = new IRStore(fieldIR, "@fields" + alphabet[classInt]);
+
+                    currentBlock.addIRStatement(alloc);
+                    currentBlock.addIRStatement(store);
+                    currentBlock.addIRStatement(filedAlloc);
+                    currentBlock.addIRStatement(storeField);
                 } else {
                     IRVariable variableNode = new IRVariable(statement.getVariable().toString());
                     String tmpVar = exprToIR(statement.getExpr(), currentBlock);
@@ -80,10 +96,13 @@ public class TransformIR {
                     currentBlock.addIRStatement(newIR);
                 }
             } else if (statement instanceof FieldUpdate) {
-                IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                String tmpVar = exprToIR(statement.getExpr(), currentBlock);
-                IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
+                String tmpName = "%" + tmpVar;
+                String classVar = "%" + alphabet[classInt] + "" + classNum;
+                IRVariable newVar = new IRVariable(tmpName);
+                IRAssignment newIR = new IRAssignment(newVar, classVar + " & 1");
+                Conditional newCondition = new Conditional("badptr", "l" + labelInt, newVar);
                 currentBlock.addIRStatement(newIR);
+                currentBlock.addIRStatement(newCondition);
             }
         }
     }
@@ -112,7 +131,12 @@ public class TransformIR {
         return IRStatements;
     }
 
-    public ArrayList<IRStatement> ptrCheck(ClassNode newClass) {
-        return new ArrayList<IRStatement>();
+    public void iterateMethods(ClassNode newClass, BasicBlock classBlock) {
+        ArrayList<ClassMethod> methodLists = newClass.getMethods();
+
+        for (ClassMethod method : methodLists) {
+            ArrayList<ASTStatement> statements = method.getStatements();
+            transformToIR(statements, classBlock);
+        }
     }
 }

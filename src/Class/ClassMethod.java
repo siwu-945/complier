@@ -34,4 +34,8 @@ public class ClassMethod {
         return methodExp;
     }
 
+    public ArrayList<ASTStatement> getStatements() {
+        return statements;
+    }
+
 }

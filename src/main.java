@@ -114,26 +114,10 @@ public class main {
 
     public static void main(String[] args) {
 
-        String irTest1 =
-                "    y = ((3 + 5) * 6)\n" +
-                        " print(3)";
-
-        String irClassTest = "class A [\n" +
-                "    fields x\n" +
-                "    method m() with locals var1, var2:\n" +
-                "      x = (3 + 3)\n" +
-                "      y = 5\n" +
-                "    method b() with locals var3, var4:\n" +
-                "      a = 100000\n" +
-                "      b = 80000\n" +
-                "]\n" +
-                "y = ((3 + 5) * 6)\n" +
-                " print(3)";
-
         String wholeSource = "class A [\n" +
                 "    fields x\n" +
                 "    method m() with locals:\n" +
-                "      return &this.x\n" +
+                "      return 5\n" +
                 "]\n" +
                 "class B [\n" +
                 "    fields a, b, x\n" +
@@ -144,6 +128,8 @@ public class main {
                 "]\n" +
                 "\n" +
                 "main with x, y:\n" +
+                "    x = @a\n" +
+                "    !a.x = 5\n" +
                 "    x = (4 + 5)\n" +
                 "    x = 73\n" +
                 "    y = (4 + 5)";
@@ -172,11 +158,13 @@ public class main {
         }
 
         //print main
-        ArrayList<IRStatement> mainBlockIR = blocks.get("main").getIRStatements();
-        System.out.println("main:");
-
-        for (IRStatement statement : mainBlockIR) {
-            System.out.println("    " + statement);
+        vtbleNames.add("main");
+        for (String tbleName : vtbleNames) {
+            ArrayList<IRStatement> blockIR = blocks.get(tbleName).getIRStatements();
+            System.out.println(tbleName + ":");
+            for (IRStatement statement : blockIR) {
+                System.out.println("    " + statement);
+            }
         }
     }
 

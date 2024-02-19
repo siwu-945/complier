@@ -149,7 +149,7 @@ public class Parser {
         } else if (line.startsWith("return ")) {
             int returnEnd = line.indexOf(')');
             ASTExpression returnExp;
-            if (line.charAt(7) == '(') {
+            if (line.charAt(7) == '(' || line.charAt(7) == '&') {
                 String subExp = line.substring(3, returnEnd);
                 returnExp = parseExpr(subExp).getFirst();
             } else {
@@ -172,11 +172,14 @@ public class Parser {
             }
             return new PrintStatement(printExp);
         } else if (line.startsWith("!")) {
-            //TODO: parse fieldUpdate
             int eEnd = line.indexOf('.');
-            ASTExpression e = new ClassExpr("wuhu");
-            String f = "f";
-            return new FieldUpdate(e, f);
+            int equalIndex = line.indexOf('=');
+
+            ASTExpression left_e = new ClassExpr(line.substring(1, eEnd));
+            String field = line.substring(eEnd + 1, equalIndex - 1);
+            Pair<ASTExpression, String> right_ePair = parseExpr(line.substring(equalIndex + 2));
+            ASTExpression right_e = right_ePair.getFirst();
+            return new FieldUpdate(left_e, field, right_e);
         } else {
             int assignIndex = line.indexOf('=');
             String variableName = line.substring(0, assignIndex - 1).trim();
@@ -308,9 +311,11 @@ public class Parser {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
 
-                ArrayList<IRStatement> IRStatements = irTransformer.initClass(newClass);
+//                ArrayList<IRStatement> IRStatements = irTransformer.initClass(newClass);
+                ArrayList<IRStatement> IRStatements = new ArrayList<>();
 
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName());
+                irTransformer.iterateMethods(newClass, classBlock);
                 blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
                 classIndex = findClassStart(lines, currentLine);
