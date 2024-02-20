@@ -8,7 +8,6 @@ import Expressions.Object;
 import Expressions.*;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
-import Program.GlobalDataSegment;
 import Statement.*;
 
 import java.util.*;
@@ -20,9 +19,11 @@ public class Parser {
     public Pair<ASTExpression, String> parseExpr(String input) {
         if (Character.isDigit(input.charAt(0))) {
             return parseNumber(input);
-        } else if (Character.isLetter(input.charAt(0))) {
+        }
+        else if (Character.isLetter(input.charAt(0))) {
             return parseVariable(input);
-        } else if (input.startsWith("(")) {
+        }
+        else if (input.startsWith("(")) {
             // Parse arithmetic expression
             Pair<ASTExpression, String> leftres = parseExpr(input.substring(1));
 
@@ -38,14 +39,17 @@ public class Parser {
 
             if (rest3.startsWith(")") && rest3.length() == 1) {
                 rest3 = "";
-            } else if (rest3.startsWith(")") && rest3.length() >= 1) {
+            }
+            else if (rest3.startsWith(")") && rest3.length() >= 1) {
                 rest3 = rest3.substring(1).trim();
-            } else {
+            }
+            else {
                 rest3 = rest3.substring(2);
             }
             return new Pair<>(new ArithmeticExpression(left, op, right), rest3);
 
-        } else if (input.startsWith("^")) {
+        }
+        else if (input.startsWith("^")) {
             // Parse method invocation
             int dotIndex = input.indexOf(".");
             int argStart = input.indexOf("(");
@@ -59,7 +63,8 @@ public class Parser {
             while (true) {
                 if (rest1.startsWith(")")) {
                     break;
-                } else if (rest1.startsWith(",")) {
+                }
+                else if (rest1.startsWith(",")) {
                     rest1 = rest1.substring(2);
                 }
                 Pair<ASTExpression, String> args = parseExpr(rest1);
@@ -68,14 +73,16 @@ public class Parser {
             }
 
             return new Pair<>(new Method(objectExpr, methodName, arguments), "");
-        } else if (input.startsWith("&")) {
+        }
+        else if (input.startsWith("&")) {
             // Parse field read
             int dotIndex = input.indexOf(".");
             Object objectExpr = new Object(input.substring(1, dotIndex));
             String name = input.substring(dotIndex + 1);
 
             return new Pair<>(new FieldRead(objectExpr, name), "");
-        } else if (input.startsWith("@")) {
+        }
+        else if (input.startsWith("@")) {
             String className = input.substring(1);
             return new Pair<>(new ClassExpr(className), "");
         }
@@ -113,58 +120,76 @@ public class Parser {
             if (line.charAt(3) == '(') {
                 String subExp = line.substring(3, ifEnd);
                 ifExp = parseExpr(subExp).getFirst();
-            } else {
+            }
+            else {
                 ifExp = parseExpr(line.substring(3, ifEnd - 1)).getFirst();
             }
 
             List<ASTStatement> trueBranch = new ArrayList<>();
 
             return new IfStatement(ifExp, trueBranch, trueBranch);
-        } else if (line.startsWith("while ")) {
+        }
+        else if (line.startsWith("while ")) {
             int whileEnd = line.indexOf(':');
             ASTExpression whileExp;
             if (line.charAt(3) == '(') {
                 String subExp = line.substring(3, whileEnd);
                 whileExp = parseExpr(subExp).getFirst();
-            } else {
+            }
+            else {
                 whileExp = parseExpr(line.substring(3, whileEnd - 1)).getFirst();
             }
 
             List<ASTStatement> whileBranch = new ArrayList<>();
             return new WhileStatement(whileExp, whileBranch);
 
-        } else if (line.startsWith("ifonly ")) {
+        }
+        else if (line.startsWith("ifonly ")) {
             int ifEnd = line.indexOf(':');
             ASTExpression ifExp;
             if (line.charAt(7) == '(') {
                 String subExp = line.substring(7, ifEnd);
                 ifExp = parseExpr(subExp).getFirst();
-            } else {
+            }
+            else {
                 ifExp = parseExpr(line.substring(7, ifEnd - 1)).getFirst();
             }
 
             List<ASTStatement> trueBranch = new ArrayList<>();
 
             return new IfStatement(ifExp, trueBranch, trueBranch);
-        } else if (line.startsWith("return ")) {
+        }
+        else if (line.startsWith("return ")) {
             int returnEnd = line.indexOf(')');
             ASTExpression returnExp;
             if (line.charAt(7) == '(' || line.charAt(7) == '&') {
-                String subExp = line.substring(3, returnEnd);
+                String subExp = "";
+                int startIndex = 3;
+                if (line.charAt(7) == '&') {
+                    startIndex = 7;
+                }
+                if (returnEnd > -1) {
+                    subExp = line.substring(startIndex, returnEnd);
+                }
+                else {
+                    subExp = line.substring(startIndex);
+                }
                 returnExp = parseExpr(subExp).getFirst();
-            } else {
+            }
+            else {
                 returnExp = parseExpr(line.substring(7)).getFirst();
             }
 
             return new ReturnStatement(returnExp);
 
-        } else if (line.startsWith("}")) {
+        }
+        else if (line.startsWith("}")) {
             return new endStatement();
-        } else if (line.startsWith("print ") || line.startsWith("print")) {
+        }
+        else if (line.startsWith("print ") || line.startsWith("print")) {
             ASTExpression printExp;
             int printEnd = line.indexOf(')');
 
-            //TODO: fix this
             if (printEnd < line.length() - 1) {
                 printEnd = line.length() - 1;
             }
@@ -172,11 +197,13 @@ public class Parser {
             if (line.charAt(5) == '(') {
                 String exp = line.substring(6, printEnd);
                 printExp = parseExpr(exp).getFirst();
-            } else {
+            }
+            else {
                 printExp = parseExpr(line.substring(5)).getFirst();
             }
             return new PrintStatement(printExp);
-        } else if (line.startsWith("!")) {
+        }
+        else if (line.startsWith("!")) {
             int eEnd = line.indexOf('.');
             int equalIndex = line.indexOf('=');
 
@@ -185,7 +212,8 @@ public class Parser {
             Pair<ASTExpression, String> right_ePair = parseExpr(line.substring(equalIndex + 2));
             ASTExpression right_e = right_ePair.getFirst();
             return new FieldUpdate(left_e, field, right_e);
-        } else {
+        }
+        else {
             int assignIndex = line.indexOf('=');
             String variableName = line.substring(0, assignIndex - 1).trim();
             String exp = line.substring(assignIndex + 2);
@@ -196,21 +224,6 @@ public class Parser {
             return new Assignment(x, e);
         }
 
-    }
-
-
-    public ArrayList<ASTStatement> parseStatementBlock(String codeBlock) {
-        String[] lines = codeBlock.split("\n");
-        ArrayList<ASTStatement> statementsBlock = new ArrayList<>();
-        int currentLine = 0;
-        while (currentLine < lines.length) {
-            String line = lines[currentLine];
-            currentLine++;
-
-            ASTStatement newState = parseStatement(line);
-            statementsBlock.add(newState);
-        }
-        return statementsBlock;
     }
 
     public ClassNode parseClass(String line) {
@@ -265,18 +278,6 @@ public class Parser {
         return new ClassNode(name, fieldList, methodList);
     }
 
-    public GlobalDataSegment checkForClass(ArrayList<ASTStatement> statements) {
-        GlobalDataSegment arrays = new GlobalDataSegment();
-
-        for (ASTStatement statement : statements) {
-            if (statement instanceof ClassNode) {
-                String className = "vtbl" + ((ClassNode) statement).getClassName();
-            }
-        }
-        return arrays;
-
-    }
-
     public int[] findClassStart(ArrayList<String> lines, int start) {
         int[] indexs = new int[2];
         indexs[0] = -999;
@@ -285,7 +286,8 @@ public class Parser {
             String line = lines.get(i);
             if (line.startsWith("class")) {
                 indexs[0] = i;
-            } else if (line.startsWith("]")) {
+            }
+            else if (line.startsWith("]")) {
                 indexs[1] = i;
                 break;
             }
@@ -316,7 +318,6 @@ public class Parser {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
 
-//                ArrayList<IRStatement> IRStatements = irTransformer.initClass(newClass);
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
 
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName(), "class");
@@ -327,9 +328,11 @@ public class Parser {
                 if (classIndex[0] == -999) {
                     currentLine++;
                 }
-            } else if (lines.get(currentLine).startsWith("main ")) {
+            }
+            else if (lines.get(currentLine).startsWith("main ")) {
                 currentLine++;
-            } else {
+            }
+            else {
                 ASTStatement statement = parseStatement(lines.get(currentLine));
                 statements.add(statement);
                 currentLine++;

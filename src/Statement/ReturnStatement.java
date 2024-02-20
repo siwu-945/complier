@@ -13,12 +13,12 @@ public class ReturnStatement extends ASTStatement {
 
     @Override
     public ASTExpression getVariable() {
-        return null;
+        return returnExp;
     }
 
     @Override
     public ASTExpression getExpr() {
-        return null;
+        return returnExp;
     }
 
 }

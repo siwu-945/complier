@@ -1,6 +1,16 @@
 package ControlTransfer;
 
+import Primitives.IRVariable;
+
 public class returnControl extends ControlTransfer {
-    //ret %v or ret n for some int literal n
-    String retValue;
+    IRVariable returnVariable;
+
+    public returnControl(IRVariable returnVariable) {
+        this.returnVariable = returnVariable;
+    }
+
+    @Override
+    public String toString() {
+        return "ret " + returnVariable.toString();
+    }
 }

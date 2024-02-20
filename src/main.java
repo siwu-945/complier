@@ -10,7 +10,8 @@ public class main {
         for (int i = 0; i < field.length; i++) {
             if (i != field.length - 1) {
                 para += field[i] + " , ";
-            } else {
+            }
+            else {
                 para += field[i];
             }
         }
@@ -31,7 +32,8 @@ public class main {
         for (int i = 0; i < field.length; i++) {
             if (i != field.length - 1) {
                 para += field[i] + " , ";
-            } else {
+            }
+            else {
                 para += field[i];
             }
         }
@@ -88,7 +90,8 @@ public class main {
                 int fieldID = method.indexOf(currentMethod);
                 if (fieldID > -1) {
                     methodX[i] = currentMethod;
-                } else {
+                }
+                else {
                     methodX[i] = "0";
                 }
             }
@@ -111,7 +114,8 @@ public class main {
                 int fieldID = fields.indexOf(currentField) + 2;
                 if (fieldID > 1) {
                     fieldsX[i] = fieldID;
-                } else {
+                }
+                else {
                     fieldsX[i] = 0;
                 }
             }
@@ -123,10 +127,10 @@ public class main {
 
     public static void main(String[] args) {
 
-        String wholeSource = "class A [\n" +
+        String wholeSource2 = "class A [\n" +
                 "    fields x\n" +
                 "    method m() with locals:\n" +
-                "      return 5\n" +
+                "      return &this.x\n" +
                 "]\n" +
                 "class B [\n" +
                 "    fields a, b, x\n" +
@@ -141,6 +145,18 @@ public class main {
 //
                 "    !a.x = 5\n" +
 //                "    print(8)\n";
+                "    print(^x.m())";
+
+        String wholeSource = "class A [\n" +
+                "    fields x\n" +
+                "    method m() with locals:\n" +
+                "      return 3\n" +
+                "]\n" +
+                "\n" +
+                "main with x, y:\n" +
+                "    x = @a\n" +
+//
+                "    !a.x = 5\n" +
                 "    print(^x.m())";
 
 
