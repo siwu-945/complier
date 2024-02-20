@@ -1,8 +1,10 @@
 import BasicBlock.BasicBlock;
 import Primitives.IRStatement;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Scanner;
 
 public class main {
     private static String generateFieldParameter(int[] field) {
@@ -126,38 +128,23 @@ public class main {
     }
 
     public static void main(String[] args) {
+        String wholeSource = "";
+        String filePath = "";
 
-        String wholeSource2 = "class A [\n" +
-                "    fields x\n" +
-                "    method m() with locals:\n" +
-                "      return &this.x\n" +
-                "]\n" +
-                "class B [\n" +
-                "    fields a, b, x\n" +
-                "    method m() with locals:\n" +
-                "      return 0\n" +
-                "    method b() with locals:\n" +
-                "      return 3\n" +
-                "]\n" +
-                "\n" +
-                "main with x, y:\n" +
-                "    x = @a\n" +
-//
-                "    !a.x = 5\n" +
-//                "    print(8)\n";
-                "    print(^x.m())";
-
-        String wholeSource = "class A [\n" +
-                "    fields x\n" +
-                "    method m() with locals:\n" +
-                "      return 3\n" +
-                "]\n" +
-                "\n" +
-                "main with x, y:\n" +
-                "    x = @a\n" +
-//
-                "    !a.x = 5\n" +
-                "    print(^x.m())";
+        if (args.length != 1) {
+            filePath = "example1.txt";
+        }
+        else {
+            filePath = args[0];
+        }
+        File file = new File(filePath);
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                wholeSource += scanner.nextLine() + "\n";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
         Parser myParser = new Parser();

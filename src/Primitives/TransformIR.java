@@ -26,6 +26,7 @@ public class TransformIR {
     int methodID = 0;
     ArrayList<Integer> classes = new ArrayList<>();
     Map<String, BasicBlock> blockMap;
+    BasicBlock blockCounter;
 
     public void tagCheck(BasicBlock currentBlock) {
         String tmpName = "%" + tmpVar;
@@ -38,10 +39,11 @@ public class TransformIR {
         tmpVar++;
     }
 
-    public void fieldRead(Map<String, BasicBlock> blocks) {
+    public IRVariable fieldRead(Map<String, BasicBlock> blocks) {
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
         String tmpName = "%" + tmpVar;
         String classVar = "%" + alphabet[classInt] + "" + classNum;
+
         IRVariable fieldIR = new IRVariable(tmpName);
         IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
         tmpVar++;
@@ -51,7 +53,7 @@ public class TransformIR {
         tmpVar++;
         IRVariable geteltVar = new IRVariable("%" + tmpVar);
         IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
-        tmpVar++;
+//        tmpVar++;
         Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badfield", geteltVar);
 
         IRStatements.add(filedAlloc);
@@ -61,6 +63,8 @@ public class TransformIR {
         BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
         blocks.put("l" + labelInt, newBlock);
         labelInt++;
+        blockCounter = newBlock;
+        return geteltVar;
     }
 
     public void getx(BasicBlock currentBlock) {
@@ -70,8 +74,12 @@ public class TransformIR {
         IRVariable newVar = new IRVariable(tmpName);
         IRgetelt getX = new IRgetelt(newVar, classVar, methodID);
         returnControl returnGet = new returnControl(newVar);
-        currentBlock.addIRStatement(getX);
-        currentBlock.addIRStatement(returnGet);
+        ArrayList<IRStatement> IRStatements = new ArrayList<>();
+        IRStatements.add(getX);
+        IRStatements.add(returnGet);
+        BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+        blockMap.put("l" + labelInt, newBlock);
+        labelInt++;
     }
 
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
@@ -111,7 +119,7 @@ public class TransformIR {
             tmpVar++;
             IRVariable newVar3 = new IRVariable("%" + tmpVar);
             IRgetelt newGet = new IRgetelt(newVar3, newVar2, methodID);
-            Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar2);
+            Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
 
             newBlock.addIRStatement(newLoad);
             newBlock.addIRStatement(newGet);
@@ -148,7 +156,7 @@ public class TransformIR {
     }
 
     public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock, Map<String, BasicBlock> blocks) {
-        BasicBlock blockCounter = currentBlock;
+        blockCounter = currentBlock;
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
@@ -178,49 +186,21 @@ public class TransformIR {
                 }
             }
             else if (statement instanceof FieldUpdate) {
-                String tmpName = "%" + tmpVar;
+                tagCheck(blockCounter);
+                IRVariable geteltVar = fieldRead(blocks);
                 String classVar = "%" + alphabet[classInt] + "" + classNum;
-                IRVariable newVar = new IRVariable(tmpName);
-                IRAssignment newIR = new IRAssignment(newVar, classVar + " & 1");
-                Conditional newCondition = new Conditional("badptr", "l" + labelInt, newVar);
-                currentBlock.addIRStatement(newIR);
-                currentBlock.addIRStatement(newCondition);
-
-                tmpVar++;
-                ArrayList<IRStatement> IRStatements = new ArrayList<>();
-                tmpName = "%" + tmpVar;
-                IRVariable fieldIR = new IRVariable(tmpName);
-                IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
-                tmpVar++;
-                IRVariable fieldLoadedVar = new IRVariable("%" + tmpVar);
-                IRLoad loadField = new IRLoad(fieldLoadedVar, fieldIR);
-
-                tmpVar++;
-                IRVariable geteltVar = new IRVariable("%" + tmpVar);
-                IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
-                tmpVar++;
-                Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badfield", geteltVar);
-
-                IRStatements.add(filedAlloc);
-                IRStatements.add(loadField);
-                IRStatements.add(getelt);
-                IRStatements.add(newCondition2);
-                BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-                blocks.put("l" + labelInt, newBlock);
-                labelInt++;
-
                 ArrayList<IRStatement> storingRight = new ArrayList<>();
-
                 BasicBlock storeX = new BasicBlock(storingRight, "l" + labelInt, "non-class");
                 ASTExpression fieldUpdateRight = statement.getExpr();
 
-                String tmpVar = exprToIR(fieldUpdateRight, storeX);
-                IRVariable rightVar = new IRVariable(tmpVar);
+                String tmpVarString = exprToIR(fieldUpdateRight, storeX);
+                IRVariable rightVar = new IRVariable(tmpVarString);
                 IRSet setRight = new IRSet(new IRVariable(classVar), geteltVar, rightVar);
                 storingRight.add(setRight);
                 blocks.put("l" + labelInt, storeX);
                 blockCounter = storeX;
                 labelInt++;
+                tmpVar++;
             }
             else if (statement instanceof PrintStatement) {
                 ASTExpression printVal = statement.getVariable();
@@ -238,7 +218,6 @@ public class TransformIR {
                     blockCounter.addIRStatement(getValue);
                     IRPrint newIR = new IRPrint(returnVarible.toString());
                     blockCounter.addIRStatement(newIR);
-
                     blocks.put("l" + labelInt, printBlock);
                 }
                 else {

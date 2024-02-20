@@ -22,7 +22,7 @@ public class PrintStatement extends ASTStatement {
 
     @Override
     public ASTExpression getExpr() {
-        return null;
+        return printVal;
     }
 
 }
