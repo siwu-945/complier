@@ -395,6 +395,9 @@ public class Parser {
                     inLoop = false;
                 }
             }
+            else {
+                return fieldMap;
+            }
         }
         return fieldMap;
     }
@@ -423,6 +426,9 @@ public class Parser {
                 if (classIndex[0] == -999) {
                     inLoop = false;
                 }
+            }
+            else {
+                return methodMap;
             }
         }
         return methodMap;

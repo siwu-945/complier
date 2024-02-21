@@ -52,10 +52,16 @@ public class TransformIR {
         tmpVar++;
     }
 
-    public IRVariable fieldRead(Map<String, BasicBlock> blocks) {
+    public IRVariable fieldRead(Map<String, BasicBlock> blocks, boolean classInit) {
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
+        String classVar = "";
+        if (classInit) {
+            classVar = "%this";
+        }
+        else {
+            classVar = "%" + alphabet[classInt] + "" + classNum;
+        }
         String tmpName = "%" + tmpVar;
-        String classVar = "%" + alphabet[classInt] + "" + classNum;
 
         IRVariable fieldIR = new IRVariable(tmpName);
         IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
@@ -65,18 +71,21 @@ public class TransformIR {
 
         tmpVar++;
         IRVariable geteltVar = new IRVariable("%" + tmpVar);
-        IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
-//        tmpVar++;
-        Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badfield", geteltVar);
 
-        IRStatements.add(filedAlloc);
-        IRStatements.add(loadField);
-        IRStatements.add(getelt);
-        IRStatements.add(newCondition2);
-        BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-        blocks.put("l" + labelInt, newBlock);
-        labelInt++;
-        blockCounter = newBlock;
+//        tmpVar++;
+        IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
+        Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt), "badfield", geteltVar);
+        blockCounter.addIRStatement(filedAlloc);
+        blockCounter.addIRStatement(loadField);
+        blockCounter.addIRStatement(getelt);
+        blockCounter.addIRStatement(newCondition2);
+
+        if (!classInit) {
+            BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+            blocks.put("l" + labelInt, newBlock);
+            blockCounter = newBlock;
+            labelInt++;
+        }
         return geteltVar;
     }
 
@@ -144,30 +153,6 @@ public class TransformIR {
         return "%" + Integer.toString(tmpVar);
     }
 
-    public void addToBB(ArrayList<ASTStatement> statements, ArrayList<BasicBlock> bs, String cur) {
-        BasicBlock currentBlock = findBlockByName(bs, cur);
-
-        for (ASTStatement statement : statements) {
-            if (statement instanceof Assignment) {
-                if (statement.getExpr() instanceof ClassExpr) {
-                    int x = 1 + 1;
-                }
-                else {
-                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                    String tmpVar = exprToIR(statement.getExpr(), currentBlock);
-                    IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
-                    currentBlock.addIRStatement(newIR);
-                }
-            }
-            else if (statement instanceof FieldUpdate) {
-                IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                String tmpVar = exprToIR(statement.getExpr(), currentBlock);
-                IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
-                currentBlock.addIRStatement(newIR);
-            }
-        }
-    }
-
     //TODO: take consideration of classInit
     public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock, Map<String, BasicBlock> blocks, boolean classInit) {
         classInt = 0;
@@ -201,6 +186,9 @@ public class TransformIR {
                 }
             }
             else if (statement instanceof FieldUpdate) {
+                ArrayList<IRStatement> storingRight = new ArrayList<>();
+                BasicBlock storeX = new BasicBlock(storingRight, "l" + labelInt, "non-class");
+
                 String classVar = "";
                 if (classInit) {
                     classVar = "%this";
@@ -212,18 +200,18 @@ public class TransformIR {
                     classVar = "%" + className + "" + classNum;
                 }
                 tagCheck(blockCounter, classVar);
-                IRVariable geteltVar = fieldRead(blocks);
-                ArrayList<IRStatement> storingRight = new ArrayList<>();
-                BasicBlock storeX = new BasicBlock(storingRight, "l" + labelInt, "non-class");
+                if (!classInit) {
+                    blockCounter = storeX;
+                    blocks.put("l" + labelInt, blockCounter);
+                    labelInt++;
+                }
+                IRVariable geteltVar = fieldRead(blocks, classInit);
                 ASTExpression fieldUpdateRight = statement.getExpr();
 
-                String tmpVarString = exprToIR(fieldUpdateRight, storeX);
+                String tmpVarString = exprToIR(fieldUpdateRight, blockCounter);
                 IRVariable rightVar = new IRVariable(tmpVarString);
                 IRSet setRight = new IRSet(new IRVariable(classVar), geteltVar, rightVar);
-                storingRight.add(setRight);
-                blocks.put("l" + labelInt, storeX);
-                blockCounter = storeX;
-                labelInt++;
+                blockCounter.addIRStatement(setRight);
                 tmpVar++;
             }
             else if (statement instanceof PrintStatement) {
@@ -261,7 +249,8 @@ public class TransformIR {
                         objectName = ((FieldRead) statement.getExpr()).getObj();
                     }
                     tagCheck(blockCounter, objectName);
-                    fieldRead(blocks);
+                    fieldRead(blocks, classInit);
+                    tmpVar++;
                     getx(blockCounter);
                 }
                 else {

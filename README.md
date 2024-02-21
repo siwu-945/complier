@@ -1,25 +1,19 @@
-# CS441 Milestone 1 (Unfinished)
+# CS441 Milestone 1
 
 ## Usage
 
-- I didn't make it to be able to run with a command line argument, I just putted everything in the main.java. The
-  example program is in a String called "wholeSource". With 2 classes, and some arithmetic operations in main. But main
-  doesn't do anything with the classes because I haven't got to there yet.
-- Run main.java
+- You can run main.java, make sure you are running from the root directory of the project. The default soucre code is
+  called "example1.txt"
+- You can also run the following command(when you have the main.class file):
+    - java -cp out/production/milestone1 main <sourcecode.txt>
 
-## What I have done so far
+## Peephole Optimization Choice
 
-- Parsing source code into an AST
-    - ASTExpression
-    - ASTStatement
-- Transforming ASTStatement into IR
-- Adding IR to different basic blocks
-- I have generated vtble and fields
-    - global ID for vtble and fields
-    - vtble array for each class
-    - fields array for each class
-- My program can do basic arithmetic translation as shown when you run main.java
-    - a basic block called "main", transforming the arithmetic operations into SSA form
+- I choose to remove any tag checks on accesses to "%this." No need to tag checks when accessing fields or methods of
+  %this in the IR
+- you can find the optimization in TransformIR.java, within the method:
+    - public void tagCheck(BasicBlock currentBlock, String className)
+    - I checked if the access is to %this, and if it is, I just return without doing anything.
 
 ## What I still need to do
 
