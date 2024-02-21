@@ -16,7 +16,7 @@ public class FieldUpdate extends ASTStatement {
 
     @Override
     public ASTExpression getVariable() {
-        return null;
+        return left_e;
     }
 
     @Override

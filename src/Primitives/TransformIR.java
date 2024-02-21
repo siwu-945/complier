@@ -24,15 +24,28 @@ public class TransformIR {
     char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
     int classNum = 0;
     int methodID = 0;
-    ArrayList<Integer> classes = new ArrayList<>();
+    ArrayList<String> classes = new ArrayList<>();
     Map<String, BasicBlock> blockMap;
     BasicBlock blockCounter;
 
-    public void tagCheck(BasicBlock currentBlock) {
+    //TODO: fix the getting the correct index
+    public int classIndex(ArrayList<String> classArray, String name) {
+        String className = name.substring(1);
+        for (int i = 0; i < classArray.size(); i++) {
+            if (classArray.get(i).equals(className)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void tagCheck(BasicBlock currentBlock, String className) {
+        if (className.equals("%this")) {
+            return;
+        }
         String tmpName = "%" + tmpVar;
-        String classVar = "%" + alphabet[classInt] + "" + classNum;
         IRVariable newVar = new IRVariable(tmpName);
-        IRAssignment newIR = new IRAssignment(newVar, classVar + " & 1");
+        IRAssignment newIR = new IRAssignment(newVar, className + " & 1");
         Conditional newCondition = new Conditional("badptr", "l" + labelInt, newVar);
         currentBlock.addIRStatement(newIR);
         currentBlock.addIRStatement(newCondition);
@@ -155,14 +168,16 @@ public class TransformIR {
         }
     }
 
-    public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock, Map<String, BasicBlock> blocks) {
+    //TODO: take consideration of classInit
+    public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock, Map<String, BasicBlock> blocks, boolean classInit) {
+        classInt = 0;
         blockCounter = currentBlock;
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
                     classInt++;
                     String classVar = "%" + alphabet[classInt] + "" + classNum;
-                    classes.add((int) alphabet[classInt]);
+                    classes.add(statement.getVariable().toString());
                     IRVariable classVariable = new IRVariable(classVar);
                     IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
                     IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
@@ -186,9 +201,18 @@ public class TransformIR {
                 }
             }
             else if (statement instanceof FieldUpdate) {
-                tagCheck(blockCounter);
+                String classVar = "";
+                if (classInit) {
+                    classVar = "%this";
+                }
+                else {
+                    String currentClass = statement.getVariable().toString();
+                    int currentClassIndex = classIndex(classes, currentClass);
+                    Character className = alphabet[currentClassIndex];
+                    classVar = "%" + className + "" + classNum;
+                }
+                tagCheck(blockCounter, classVar);
                 IRVariable geteltVar = fieldRead(blocks);
-                String classVar = "%" + alphabet[classInt] + "" + classNum;
                 ArrayList<IRStatement> storingRight = new ArrayList<>();
                 BasicBlock storeX = new BasicBlock(storingRight, "l" + labelInt, "non-class");
                 ASTExpression fieldUpdateRight = statement.getExpr();
@@ -229,7 +253,14 @@ public class TransformIR {
             }
             else if (statement instanceof ReturnStatement) {
                 if (statement.getExpr() instanceof FieldRead) {
-                    tagCheck(blockCounter);
+                    String objectName = "";
+                    if (classInit) {
+                        objectName = "%this";
+                    }
+                    else {
+                        objectName = ((FieldRead) statement.getExpr()).getObj();
+                    }
+                    tagCheck(blockCounter, objectName);
                     fieldRead(blocks);
                     getx(blockCounter);
                 }
@@ -254,12 +285,12 @@ public class TransformIR {
         throw new IllegalArgumentException("Block not found: " + cur);
     }
 
-    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks) {
+    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit) {
         ArrayList<ClassMethod> methodLists = newClass.getMethods();
         blockMap = blocks;
         for (ClassMethod method : methodLists) {
             ArrayList<ASTStatement> statements = method.getStatements();
-            transformToIR(statements, classBlock, blocks);
+            transformToIR(statements, classBlock, blocks, classInit);
         }
     }
 }

@@ -13,4 +13,8 @@ public class ClassExpr extends ASTExpression {
     public String toString() {
         return "@" + className;
     }
+
+    public String getClassName() {
+        return className;
+    }
 }

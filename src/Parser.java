@@ -304,6 +304,7 @@ public class Parser {
         ArrayList<IRStatement> myIRStatements = new ArrayList<>();
         BasicBlock statementBlock = new BasicBlock(myIRStatements, "main", "non-class");
         blocks.put("main", statementBlock);
+        boolean classInit = true;
 
 
         for (String line : codeBlock.split("\n")) {
@@ -321,7 +322,7 @@ public class Parser {
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
 
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName(), "class");
-                irTransformer.iterateMethods(newClass, classBlock, blocks);
+                irTransformer.iterateMethods(newClass, classBlock, blocks, classInit);
                 blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
                 classIndex = findClassStart(lines, currentLine);
@@ -341,7 +342,8 @@ public class Parser {
                 inLoop = false;
             }
         }
-        irTransformer.transformToIR(statements, statementBlock, blocks);
+        classInit = false;
+        irTransformer.transformToIR(statements, statementBlock, blocks, classInit);
         return blocks;
     }
 
