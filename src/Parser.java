@@ -318,11 +318,10 @@ public class Parser {
             if (classIndex[0] != -999) {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
-
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
 
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName(), "class");
-                irTransformer.iterateMethods(newClass, classBlock, blocks, classInit);
+                irTransformer.iterateMethods(newClass, classBlock, blocks, classInit, true);
                 blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
                 classIndex = findClassStart(lines, currentLine);

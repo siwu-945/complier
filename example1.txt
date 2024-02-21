@@ -1,7 +1,19 @@
-main with x, y, z:
-    x = (4 + 5)
-    x = 73
-    y = (4 + 5)
-    print(y)
-    z = (4 + 5)
-    print(z)
+class A [
+    fields x
+    method m() with locals:
+      return &this.x
+    method l() with locals:
+      return 8
+]
+
+class B [
+    fields x
+    method b() with locals:
+      return 8
+]
+
+main with x:
+x = @A
+n = @B
+!x.x = 3
+print(^x.m())

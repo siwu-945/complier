@@ -170,16 +170,24 @@ public class main {
             System.out.println(methodString);
         }
 
-        //print main
         ArrayList<String> blockNames = getBlockNames(blocks);
 
         for (String blockName : blockNames) {
             ArrayList<IRStatement> blockIR = blocks.get(blockName).getIRStatements();
-            System.out.println(blockName + ":");
+            if (isAClass(blockName, vtbleNames)) {
+                System.out.println(blockName + "(this):");
+            }
+            else {
+                System.out.println(blockName + ":");
+            }
             for (IRStatement statement : blockIR) {
                 System.out.println("    " + statement);
             }
         }
+    }
+
+    private static boolean isAClass(String blockName, ArrayList<String> vtbleNames) {
+        return vtbleNames.contains(blockName);
     }
 
 

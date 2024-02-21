@@ -72,9 +72,13 @@ public class TransformIR {
         tmpVar++;
         IRVariable geteltVar = new IRVariable("%" + tmpVar);
 
-//        tmpVar++;
         IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
         Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt), "badfield", geteltVar);
+        ArrayList<IRStatement> empty = new ArrayList<>();
+        IRSLine badFieldLine = new IRSLine("fail NoSuchField");
+        empty.add(badFieldLine);
+        BasicBlock badField = new BasicBlock(empty, "badfield", "non-class");
+        blockMap.put("badfield", badField);
         blockCounter.addIRStatement(filedAlloc);
         blockCounter.addIRStatement(loadField);
         blockCounter.addIRStatement(getelt);
@@ -101,6 +105,7 @@ public class TransformIR {
         IRStatements.add(returnGet);
         BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
         blockMap.put("l" + labelInt, newBlock);
+        blockCounter = newBlock;
         labelInt++;
     }
 
@@ -128,6 +133,11 @@ public class TransformIR {
             String classVar = "%" + alphabet[classInt] + "" + classNum;
             IRAssignment newIR = new IRAssignment(newVar, classVar + " & 1");
             Conditional newCondition = new Conditional("badptr", "l" + labelInt, newVar);
+            ArrayList<IRStatement> empty = new ArrayList<>();
+            IRSLine badPtrLine = new IRSLine("fail NotAPointer");
+            empty.add(badPtrLine);
+            BasicBlock badPtr = new BasicBlock(empty, "badptr", "non-class");
+
             currentBlock.addIRStatement(newIR);
             currentBlock.addIRStatement(newCondition);
             tmpVar++;
@@ -143,10 +153,17 @@ public class TransformIR {
             IRgetelt newGet = new IRgetelt(newVar3, newVar2, methodID);
             Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
 
+            ArrayList<IRStatement> empty2 = new ArrayList<>();
+            IRSLine badMethodLine = new IRSLine("fail NoSuchMethod");
+            empty2.add(badMethodLine);
+            BasicBlock badMethod = new BasicBlock(empty2, "badmethod", "non-class");
+
             newBlock.addIRStatement(newLoad);
             newBlock.addIRStatement(newGet);
             newBlock.addIRStatement(newCondition2);
             blockMap.put("l" + labelInt, newBlock);
+            blockMap.put("badptr", badPtr);
+            blockMap.put("badmethod", badMethod);
             labelInt++;
         }
 
@@ -166,7 +183,7 @@ public class TransformIR {
                     IRVariable classVariable = new IRVariable(classVar);
                     IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
                     IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
-                    tmpVar++;
+//                    tmpVar++;
                     String tmpName2 = "%" + tmpVar;
                     IRVariable fieldIR = new IRVariable(tmpName2);
                     IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
@@ -259,26 +276,31 @@ public class TransformIR {
                     IRVariable returnVariable = new IRVariable(tmpVarString);
                     returnControl returnStatement = new returnControl(returnVariable);
                     blockCounter.addIRStatement(returnStatement);
+                    if (classInit && blockCounter.getAttribute().equals("class")) {
+                        blockMap.put(blockCounter.getName(), blockCounter);
+                    }
+                    else {
+                        blockMap.put("l" + labelInt, blockCounter);
+                        labelInt++;
+                    }
                 }
             }
         }
     }
 
-
-    private BasicBlock findBlockByName(ArrayList<BasicBlock> bs, String cur) {
-        for (BasicBlock b : bs) {
-            if (b.getName().equals(cur)) {
-                return b;
-            }
-        }
-        throw new IllegalArgumentException("Block not found: " + cur);
-    }
-
-    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit) {
+    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit, boolean isNewClass) {
         ArrayList<ClassMethod> methodLists = newClass.getMethods();
         blockMap = blocks;
-        for (ClassMethod method : methodLists) {
+        for (int i = 0; i < methodLists.size(); i++) {
+            ClassMethod method = methodLists.get(i);
             ArrayList<ASTStatement> statements = method.getStatements();
+            if (i > 0) {
+                ArrayList<IRStatement> IRStatements = new ArrayList<>();
+                BasicBlock newMethodBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+                classBlock = newMethodBlock;
+                blockCounter = classBlock;
+                blockMap.put("l" + labelInt, classBlock);
+            }
             transformToIR(statements, classBlock, blocks, classInit);
         }
     }

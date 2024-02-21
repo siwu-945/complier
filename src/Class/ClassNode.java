@@ -72,4 +72,8 @@ public class ClassNode extends ASTStatement {
         }
         return methodNames;
     }
+
+    public void changeClassName() {
+        this.className = this.className + "(this)";
+    }
 }
