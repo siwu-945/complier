@@ -213,6 +213,24 @@ public class Parser {
             ASTExpression right_e = right_ePair.getFirst();
             return new FieldUpdate(left_e, field, right_e);
         }
+        else if (line.startsWith("^")) {
+            int dotIndex = line.indexOf(".");
+            int argStart = line.indexOf("(");
+            List<ASTExpression> arguments = new ArrayList<>();
+
+            ASTExpression objectExpr = new Object(line.substring(1, dotIndex));
+            String methodName = line.substring(dotIndex + 1, argStart);
+            String argString = line.substring(argStart + 1, line.length() - 1);
+            if (argString.length() > 0) {
+                String[] argArray = argString.split(",");
+                for (String arg : argArray) {
+                    Pair<ASTExpression, String> argPair = parseExpr(arg);
+                    arguments.add(argPair.getFirst());
+                }
+            }
+
+            return new MethodStatement(objectExpr, methodName, arguments);
+        }
         else {
             int assignIndex = line.indexOf('=');
             String variableName = line.substring(0, assignIndex - 1).trim();
