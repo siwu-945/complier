@@ -7,4 +7,8 @@ public class Jump extends ControlTransfer {
         this.blockName = blockName;
     }
 
+    @Override
+    public String toString() {
+        return "Jump " + blockName;
+    }
 }

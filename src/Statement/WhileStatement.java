@@ -3,13 +3,13 @@ package Statement;
 import AST.ASTExpression;
 import AST.ASTStatement;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class WhileStatement extends ASTStatement {
     ASTExpression exp;
-    List<ASTStatement> whileBranch;
+    ArrayList<ASTStatement> whileBranch;
 
-    public WhileStatement(ASTExpression exp, List<ASTStatement> whileBranch) {
+    public WhileStatement(ASTExpression exp, ArrayList<ASTStatement> whileBranch) {
         this.exp = exp;
         this.whileBranch = whileBranch;
     }
@@ -22,5 +22,9 @@ public class WhileStatement extends ASTStatement {
     @Override
     public ASTExpression getExpr() {
         return null;
+    }
+
+    public ArrayList<ASTStatement> getWhileBranch() {
+        return whileBranch;
     }
 }

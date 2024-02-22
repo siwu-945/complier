@@ -18,9 +18,8 @@
 ## Incomplete?
 
 - phi functions
-    - I really tried to implement phi functions, but I couldn't get it to work. I tried to implement it in the
-      TransformIR.java file, within the method:
-        - public void transformPhiFunctions()
+    - I really tried to implement phi functions, but I couldn't get it to work. I tried to implement when the statement
+      is a "while" statement, but I couldn't figure a way to use phi function with it.
 - Sorry if the code is really messy, I only gained the understanding of what I am doing when I wrote a lot, and didn't
   plan a good code readability from the start.
 

@@ -6,6 +6,7 @@ import BasicBlock.BasicBlock;
 import Class.ClassMethod;
 import Class.ClassNode;
 import ControlTransfer.Conditional;
+import ControlTransfer.Jump;
 import ControlTransfer.returnControl;
 import Expressions.Number;
 import Expressions.*;
@@ -435,6 +436,18 @@ public class TransformIR {
                     blockCounter = falseBlock;
                     transformToIR(falseBranch, blockCounter, blocks, classInit);
                 }
+            }
+            else if (statement instanceof WhileStatement) {
+                ArrayList<ASTStatement> whileBranch = ((WhileStatement) statement).getWhileBranch();
+                String whileBlockName = "whileblock";
+                Jump condiionalJump = new Jump(whileBlockName);
+                blockCounter.addIRStatement(condiionalJump);
+
+                BasicBlock whileBlock = new BasicBlock(new ArrayList<>(), "whileblock" + labelInt, "non-class");
+                blockCounter = whileBlock;
+                blockMap.put("whileblock" + labelInt, blockCounter);
+                labelInt++;
+                transformToIR(whileBranch, blockCounter, blocks, classInit);
             }
         }
         if (!classInit) {

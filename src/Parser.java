@@ -140,7 +140,7 @@ public class Parser {
                 whileExp = parseExpr(line.substring(3, whileEnd - 1)).getFirst();
             }
 
-            List<ASTStatement> whileBranch = new ArrayList<>();
+            ArrayList<ASTStatement> whileBranch = new ArrayList<>();
             return new WhileStatement(whileExp, whileBranch);
 
         }
@@ -292,6 +292,10 @@ public class Parser {
                 int ifStatementEnd = parseIfStatement(lines, currentLine, statementList);
                 currentLine = ifStatementEnd;
             }
+            else if (statementLine.startsWith("while ")) {
+                int whileStatementEnd = parseWhileStatement(lines, currentLine, statementList);
+                currentLine = whileStatementEnd;
+            }
             else {
                 statementList.add(parseStatement(statementLine));
             }
@@ -303,6 +307,30 @@ public class Parser {
         }
 
         return new ClassNode(name, fieldList, methodList);
+    }
+
+    private int parseWhileStatement(String[] lines, int currentLine, ArrayList<ASTStatement> statementList) {
+        int whileEnd = 0;
+        ArrayList<ASTStatement> whileBranch = new ArrayList<>();
+        ASTExpression whileExp;
+        String line = lines[currentLine].trim();
+        if (line.charAt(3) == '(') {
+            String subExp = line.substring(3, whileEnd);
+            whileExp = parseExpr(subExp).getFirst();
+        }
+        else {
+            whileExp = parseExpr(line.substring(3, whileEnd - 1)).getFirst();
+        }
+        for (int i = currentLine + 1; i < lines.length; i++) {
+            String currentLineString = lines[i].trim();
+            if (currentLineString.startsWith("}")) {
+                whileEnd = i;
+                break;
+            }
+            whileBranch.add(parseStatement(currentLineString));
+        }
+        statementList.add(new WhileStatement(whileExp, whileBranch));
+        return whileEnd;
     }
 
     public int parseIfStatement(String[] lines, int currentLine, ArrayList<ASTStatement> statementList) {
