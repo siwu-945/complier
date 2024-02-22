@@ -1,9 +1,7 @@
 class A [
-    fields x, y
+    fields x
     method m() with locals:
-      return &this.y
-    method b() with locals:
-      return &this.y
+      return &this.x
 ]
 class B [
     fields y
@@ -13,5 +11,5 @@ class B [
 
 main with x:
 x = @A
-!x.y = 3
+!x.x = 3
 print(^x.b())

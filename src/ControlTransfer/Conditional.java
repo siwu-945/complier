@@ -15,6 +15,9 @@ public class Conditional extends ControlTransfer {
 
     @Override
     public String toString() {
+        if (falseBlock.equals("null")) {
+            return "if " + variable.toString() + " then " + trueBlock;
+        }
         return "if " + variable.toString() + " then " + trueBlock + " else " + falseBlock;
     }
 }

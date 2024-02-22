@@ -3,15 +3,15 @@ package Statement;
 import AST.ASTExpression;
 import AST.ASTStatement;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class IfStatement extends ASTStatement {
 
     ASTExpression exp;
-    List<ASTStatement> trueBranch;
-    List<ASTStatement> falseBranch;
+    ArrayList<ASTStatement> trueBranch;
+    ArrayList<ASTStatement> falseBranch;
 
-    public IfStatement(ASTExpression exp, List<ASTStatement> trueBranch, List<ASTStatement> falseBranch) {
+    public IfStatement(ASTExpression exp, ArrayList<ASTStatement> trueBranch, ArrayList<ASTStatement> falseBranch) {
         this.exp = exp;
         this.trueBranch = trueBranch;
         this.falseBranch = falseBranch;
@@ -33,7 +33,14 @@ public class IfStatement extends ASTStatement {
 
     @Override
     public ASTExpression getExpr() {
-        return null;
+        return exp;
     }
 
+    public ArrayList<ASTStatement> getFalseBranch() {
+        return falseBranch;
+    }
+
+    public ArrayList<ASTStatement> getTrueBranch() {
+        return trueBranch;
+    }
 }

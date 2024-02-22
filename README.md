@@ -15,14 +15,12 @@
     - public void tagCheck(BasicBlock currentBlock, String className)
     - I checked if the access is to %this, and if it is, I just return without doing anything.
 
-## What I still need to do
+## Incomplete?
 
-- pointer arithmetic?
-- generate basic block for classes
-    - I do have basic block for classes in a HashMap, with its name being the key, but it has incomplete IRStatements
-    - I need to figure a way to check if I need to do tag check within my class' basic block.
-    - I also need to add a way to generate new basic block(methods, branch...) in the class' basic block
-- proper tag check
-- generate basic blocks for methods within classes
-- ...
+- phi functions
+    - I really tried to implement phi functions, but I couldn't get it to work. I tried to implement it in the
+      TransformIR.java file, within the method:
+        - public void transformPhiFunctions()
+- Sorry if the code is really messy, I only gained the understanding of what I am doing when I wrote a lot, and didn't
+  plan a good code readability from the start.
 

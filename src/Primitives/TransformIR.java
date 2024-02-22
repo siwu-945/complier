@@ -14,6 +14,7 @@ import Statement.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TransformIR {
     static HashMap<String, String> localClassFields = new HashMap<>();
@@ -129,25 +130,29 @@ public class TransformIR {
         if (expr instanceof ArithmeticExpression) {
             String leftVar = exprToIR(((ArithmeticExpression) expr).getLeft(), currentBlock);
             String rightVar = exprToIR(((ArithmeticExpression) expr).getRight(), currentBlock);
-            Character op = ((ArithmeticExpression) expr).getOp();
+            String op = ((ArithmeticExpression) expr).getOp();
             tmpVar++;
             IRVariable newVar = new IRVariable("%" + Integer.toString(tmpVar));
             IRAssignment newIR = new IRAssignment(newVar, leftVar + " " + op + " " + rightVar);
-            currentBlock.addIRStatement(newIR);
+            blockCounter.addIRStatement(newIR);
         }
         else if (expr instanceof Number) {
             tmpVar++;
             String tmpName = "%" + Integer.toString(tmpVar);
             IRVariable newVar = new IRVariable(tmpName);
             IRAssignment newAssign = new IRAssignment(newVar, expr.toString());
-            currentBlock.addIRStatement(newAssign);
+            blockCounter.addIRStatement(newAssign);
         }
         else if (expr instanceof Method) {
-            String tmpName = "%" + tmpVar;
-            IRVariable newVar = new IRVariable(tmpName);
             String currentClass = ((Method) expr).currentClass();
-            int currentClassIndex = classIndex(classes, "^" + currentClass);
-            Character className = alphabet[currentClassIndex];
+            String className = "";
+            if (currentClass.equals("this")) {
+                className = "%this";
+            }
+            else {
+                int currentClassIndex = classIndex(classes, "^" + currentClass);
+                className = Character.toString(alphabet[currentClassIndex]);
+            }
             String classVar = "%" + className + "" + classNum;
 
             tagCheck(blockCounter, classVar);
@@ -164,10 +169,18 @@ public class TransformIR {
             tmpVar++;
             IRVariable newVar3 = new IRVariable("%" + tmpVar);
 
+            AtomicReference<String> currentMethodClass = new AtomicReference<>("");
+            if (currentClass.equals("this")) {
+                totalMethods.forEach((k, v) -> {
+                    if (v.contains(((Method) expr).getMethodName())) {
+                        currentMethodClass.set(k);
+                    }
+                });
+                currentClass = currentMethodClass.get();
+            }
             String objClassName = localClassFields.get(currentClass);
             int methodID = totalMethods.get(objClassName).indexOf(((Method) expr).getMethodName());
             IRgetelt newGet = new IRgetelt(newVar3, newVar2, methodID);
-//            labelInt++;
             Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
 
             ArrayList<IRStatement> empty2 = new ArrayList<>();
@@ -182,6 +195,43 @@ public class TransformIR {
             blockMap.put("l" + labelInt, newBlock);
             blockMap.put("badptr", badPtr);
             blockMap.put("badmethod", badMethod);
+            labelInt++;
+        }
+        else if (expr instanceof equality) {
+            String leftVar = exprToIR(((equality) expr).getLeft(), blockCounter);
+            String rightVar = exprToIR(((equality) expr).getRight(), blockCounter);
+            String op = "==";
+            tmpVar++;
+            IRVariable newVar = new IRVariable("%" + Integer.toString(tmpVar));
+            IRAssignment newIR = new IRAssignment(newVar, leftVar + " " + op + " " + rightVar);
+            blockCounter.addIRStatement(newIR);
+        }
+        else if (expr instanceof FieldRead) {
+            boolean classInit = false;
+            Map<String, BasicBlock> blocks = new HashMap<>();
+            String objectName = "";
+            String classObjcName = "";
+            if (((FieldRead) expr).getObj().contains("this")) {
+                objectName = "%this";
+                classObjcName = currentClassName;
+                classInit = true;
+            }
+            else {
+                objectName = ((FieldRead) expr).getObj();
+                classObjcName = objectName;
+            }
+            String fieldName = ((FieldRead) expr).getField();
+
+            String currentClass = localClassFields.get(classObjcName);
+            int fieldId = totalFields.get(currentClass).indexOf(fieldName);
+
+            tagCheck(blockCounter, objectName);
+            fieldRead(blocks, classInit, "@" + objectName, fieldName);
+
+            getx(objectName, fieldId);
+            BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
+            blockMap.put("l" + labelInt, newBlock);
+            blockCounter = newBlock;
             labelInt++;
         }
 
@@ -322,8 +372,9 @@ public class TransformIR {
                     if (classInit && blockCounter.getAttribute().equals("class")) {
                         blockMap.put(blockCounter.getName(), blockCounter);
                     }
-                    else {
+                    else if (!blockCounter.getName().contains("trueblock") && !blockCounter.getName().contains("falseblock")) {
                         blockMap.put("l" + labelInt, blockCounter);
+                        blockCounter = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
                         labelInt++;
                     }
                 }
@@ -334,8 +385,19 @@ public class TransformIR {
                 IRVariable codeAddress = new IRVariable(tmpVarString);
                 tmpVar++;
                 String obj = statement.getExpr().toString();
+                if (obj.contains("= ^")) {
+                    int objStart = obj.indexOf("= ^");
+                    obj = obj.substring(objStart + 3);
+                }
                 int classInt = classIndex(classes, "^" + obj);
-                IRVariable classObject = new IRVariable("%" + alphabet[classInt] + "" + classNum);
+                String methodObjName = "";
+                if (obj.contains("this")) {
+                    methodObjName = "%this";
+                }
+                else {
+                    methodObjName = "%" + alphabet[classInt] + "" + classNum;
+                }
+                IRVariable classObject = new IRVariable(methodObjName);
                 IRVariable returnVarible = new IRVariable("%" + tmpVar);
                 IRcall getValue = new IRcall(codeAddress, classObject, returnVarible);
 
@@ -347,6 +409,37 @@ public class TransformIR {
                 blockCounter.addIRStatement(newIR);
                 blockMap.put("l" + labelInt, blockCounter);
             }
+            else if (statement instanceof IfStatement) {
+                ArrayList<ASTStatement> trueBranch = ((IfStatement) statement).getTrueBranch();
+                ArrayList<ASTStatement> falseBranch = ((IfStatement) statement).getFalseBranch();
+                String conditionExp = exprToIR(statement.getExpr(), blockCounter);
+                IRVariable condition = new IRVariable(conditionExp);
+                ArrayList<IRStatement> trueIR = new ArrayList<>();
+                ArrayList<IRStatement> falseIR = new ArrayList<>();
+
+                String trueBlockName = "trueblock" + labelInt;
+                String falseBlockName = "falseblock" + labelInt;
+                labelInt++;
+                if (falseBranch.size() == 0) {
+                    falseBlockName = "null";
+                }
+                Conditional ifConditional = new Conditional(trueBlockName, falseBlockName, condition);
+                blockCounter.addIRStatement(ifConditional);
+                BasicBlock trueBlock = new BasicBlock(trueIR, trueBlockName, "non-class");
+                blockCounter = trueBlock;
+                blockMap.put(trueBlockName, blockCounter);
+                transformToIR(trueBranch, blockCounter, blocks, classInit);
+                if (falseBranch.size() != 0) {
+                    BasicBlock falseBlock = new BasicBlock(falseIR, falseBlockName, "non-class");
+                    blockMap.put(falseBlockName, falseBlock);
+                    blockCounter = falseBlock;
+                    transformToIR(falseBranch, blockCounter, blocks, classInit);
+                }
+            }
+        }
+        if (!classInit) {
+            IRVariable defaultReturn = new IRVariable("0");
+            blockCounter.addIRStatement(new returnControl(defaultReturn));
         }
     }
 

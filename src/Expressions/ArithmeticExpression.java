@@ -5,10 +5,10 @@ import AST.ASTExpression;
 public class ArithmeticExpression extends ASTExpression {
     ASTExpression left;
     ASTExpression right;
-    Character op;
+    String op;
     int value;
 
-    public ArithmeticExpression(ASTExpression left, Character op, ASTExpression right) {
+    public ArithmeticExpression(ASTExpression left, String op, ASTExpression right) {
         this.left = left;
         this.op = op;
         this.right = right;
@@ -47,7 +47,7 @@ public class ArithmeticExpression extends ASTExpression {
         return right;
     }
 
-    public Character getOp() {
+    public String getOp() {
         return op;
     }
 }
