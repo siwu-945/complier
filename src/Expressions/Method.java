@@ -32,4 +32,8 @@ public class Method extends ASTExpression {
     public String currentClass() {
         return object.toString();
     }
+
+    public String getMethodName() {
+        return methodName;
+    }
 }

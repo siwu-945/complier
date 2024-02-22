@@ -19,4 +19,8 @@ public class FieldRead extends ASTExpression {
     public String getObj() {
         return obj.toString();
     }
+
+    public String getField() {
+        return name;
+    }
 }

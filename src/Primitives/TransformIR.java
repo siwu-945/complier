@@ -12,18 +12,23 @@ import Expressions.*;
 import Statement.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TransformIR {
+    static HashMap<String, String> localClassFields = new HashMap<>();
+    ArrayList<String> globalFields;
+    Map<String, ArrayList<String>> totalFields;
     int tmpVar = 0;
     int labelInt = 1;
     int classInt = 0;
     char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
     int classNum = 0;
-    int methodID = 0;
     ArrayList<String> classes = new ArrayList<>();
     Map<String, BasicBlock> blockMap;
     BasicBlock blockCounter;
+    Map<String, ArrayList<String>> totalMethods;
+    String currentClassName;
 
     //TODO: fix the getting the correct index
     public int classIndex(ArrayList<String> classArray, String name) {
@@ -49,16 +54,22 @@ public class TransformIR {
         tmpVar++;
     }
 
-    public IRVariable fieldRead(Map<String, BasicBlock> blocks, boolean classInit, String currentObj) {
+    public IRVariable fieldRead(Map<String, BasicBlock> blocks, boolean classInit, String currentObj, String fieldName) {
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
+        String classObjName = "";
         String classVar = "";
         if (classInit) {
             classVar = "%this";
+            classObjName = currentClassName;
         }
         else {
             int currentClassIndex = classIndex(classes, currentObj);
             Character className = alphabet[currentClassIndex];
             classVar = "%" + className + "" + classNum;
+            classObjName = currentObj.substring(1);
+        }
+        if (!currentObj.substring(1).equals("this") && !currentObj.contains("this")) {
+            classObjName = currentObj.substring(1);
         }
         String tmpName = "%" + tmpVar;
 
@@ -71,7 +82,11 @@ public class TransformIR {
         tmpVar++;
         IRVariable geteltVar = new IRVariable("%" + tmpVar);
 
-        IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, methodID);
+        String currentClass = localClassFields.get(classObjName);
+
+        //+2 so to jump over vtbl and addresses
+        int fieldId = totalFields.get(currentClass).indexOf(fieldName);
+        IRgetelt getelt = new IRgetelt(geteltVar, fieldLoadedVar, fieldId);
         Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt), "badfield", geteltVar);
         ArrayList<IRStatement> empty = new ArrayList<>();
         IRSLine badFieldLine = new IRSLine("fail NoSuchField");
@@ -84,21 +99,21 @@ public class TransformIR {
         blockCounter.addIRStatement(newCondition2);
         blockMap.put("l" + labelInt, blockCounter);
 //        labelInt++;
-        if (!classInit) {
-            BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-            blocks.put("l" + labelInt, newBlock);
-            blockCounter = newBlock;
-            labelInt++;
-        }
+//        if (!classInit) {
+//            BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+//            blocks.put("l" + labelInt, newBlock);
+//            blockCounter = newBlock;
+//            labelInt++;
+//        }
         return geteltVar;
     }
 
-    public void getx(String classString) {
+    public void getx(String classString, int fieldID) {
 
         String tmpName = "%" + tmpVar;
         IRVariable classVar = new IRVariable(classString);
         IRVariable newVar = new IRVariable(tmpName);
-        IRgetelt getX = new IRgetelt(newVar, classVar, methodID);
+        IRgetelt getX = new IRgetelt(newVar, classVar, fieldID);
         returnControl returnGet = new returnControl(newVar);
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
         IRStatements.add(getX);
@@ -148,7 +163,9 @@ public class TransformIR {
 
             tmpVar++;
             IRVariable newVar3 = new IRVariable("%" + tmpVar);
-//            tmpVar++;
+
+            String objClassName = localClassFields.get(currentClass);
+            int methodID = totalMethods.get(objClassName).indexOf(((Method) expr).getMethodName());
             IRgetelt newGet = new IRgetelt(newVar3, newVar2, methodID);
 //            labelInt++;
             Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
@@ -180,6 +197,7 @@ public class TransformIR {
                 if (statement.getExpr() instanceof ClassExpr) {
                     String classVar = "%" + alphabet[classInt] + "" + classNum;
                     classes.add(statement.getVariable().toString());
+                    localClassFields.put(statement.getVariable().toString(), ((ClassExpr) statement.getExpr()).getClassName());
                     IRVariable classVariable = new IRVariable(classVar);
                     IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
                     IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
@@ -225,7 +243,18 @@ public class TransformIR {
                     blocks.put("l" + labelInt, blockCounter);
                     labelInt++;
                 }
-                IRVariable geteltVar = fieldRead(blocks, classInit, currentClass);
+                String field = ((FieldUpdate) statement).getField();
+                if (!classVar.equals("%this")) {
+                    currentClassName = ((FieldUpdate) statement).getVariable().toString().substring(1);
+                }
+                else {
+                    boolean found = false;
+                }
+                IRVariable geteltVar = fieldRead(blocks, classInit, currentClass, field);
+                BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
+                blocks.put("l" + labelInt, newBlock);
+                blockCounter = newBlock;
+                labelInt++;
                 ASTExpression fieldUpdateRight = statement.getExpr();
 
                 String tmpVarString = exprToIR(fieldUpdateRight, blockCounter);
@@ -266,15 +295,23 @@ public class TransformIR {
                 if (statement.getExpr() instanceof FieldRead) {
 
                     String objectName = "";
+                    String classObjcName = "";
                     if (classInit) {
                         objectName = "%this";
+                        classObjcName = currentClassName;
                     }
                     else {
                         objectName = ((FieldRead) statement.getExpr()).getObj();
+                        classObjcName = objectName;
                     }
+                    String fieldName = ((FieldRead) statement.getExpr()).getField();
+
+                    String currentClass = localClassFields.get(classObjcName);
+                    int fieldId = totalFields.get(currentClass).indexOf(fieldName);
+
                     tagCheck(blockCounter, objectName);
-                    fieldRead(blocks, classInit, "@" + objectName);
-                    getx(objectName);
+                    fieldRead(blocks, classInit, "@" + objectName, fieldName);
+                    getx(objectName, fieldId);
                 }
                 else {
                     ASTExpression returnValue = statement.getVariable();
@@ -313,9 +350,14 @@ public class TransformIR {
         }
     }
 
-    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit, boolean isNewClass) {
+    public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit, ArrayList<String> gfields, Map<String, ArrayList<String>> totalFieldsMap, Map<String, ArrayList<String>> totalMethodsMap) {
         ArrayList<ClassMethod> methodLists = newClass.getMethods();
+        globalFields = gfields;
+        totalFields = totalFieldsMap;
+        localClassFields.put(newClass.getClassName(), newClass.getClassName());
         blockMap = blocks;
+        totalMethods = totalMethodsMap;
+        currentClassName = newClass.getClassName();
         for (int i = 0; i < methodLists.size(); i++) {
             ClassMethod method = methodLists.get(i);
             ArrayList<ASTStatement> statements = method.getStatements();

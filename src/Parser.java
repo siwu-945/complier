@@ -9,6 +9,7 @@ import Expressions.*;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
 import Statement.*;
+import Utility.GlobalarrayGenerator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -315,6 +316,17 @@ public class Parser {
 
     public Map<String, BasicBlock> readingSource(String codeBlock) {
         Map<String, BasicBlock> blocks = new LinkedHashMap<String, BasicBlock>();
+
+        Map<String, ArrayList<String>> totalFields = generateFields(codeBlock);
+        Map<String, ArrayList<String>> totalMethods = generateMethods(codeBlock);
+        ArrayList<String> vtbleNames = new ArrayList<>();
+        totalMethods.forEach((key, value) -> {
+            vtbleNames.add(key);
+        });
+        ArrayList<String> globalFieldArray = GlobalarrayGenerator.generateGlobalFieldArray(vtbleNames, totalFields);
+
+        ArrayList<String> globalVtbleArray = GlobalarrayGenerator.generateGlobalVtbleArray(vtbleNames, totalMethods);
+
         TransformIR irTransformer = new TransformIR();
         boolean inLoop = true;
         ArrayList<String> lines = new ArrayList<>();
@@ -337,9 +349,8 @@ public class Parser {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
-
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName(), "class");
-                irTransformer.iterateMethods(newClass, classBlock, blocks, classInit, true);
+                irTransformer.iterateMethods(newClass, classBlock, blocks, classInit, globalFieldArray, totalFields, totalMethods);
                 blocks.put(newClass.getClassName(), classBlock);
                 currentLine = classIndex[1] + 1;
                 classIndex = findClassStart(lines, currentLine);

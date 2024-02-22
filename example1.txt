@@ -1,19 +1,17 @@
 class A [
-    fields x
+    fields x, y
     method m() with locals:
-      return &this.x
-    method l() with locals:
-      return 8
-]
-
-class B [
-    fields x
+      return &this.y
     method b() with locals:
-      return 8
+      return &this.y
+]
+class B [
+    fields y
+    method m() with locals:
+      return 0
 ]
 
 main with x:
 x = @A
-n = @B
-!x.x = 3
-print(^x.m())
+!x.y = 3
+print(^x.b())

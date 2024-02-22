@@ -23,4 +23,8 @@ public class FieldUpdate extends ASTStatement {
     public ASTExpression getExpr() {
         return right_e;
     }
+
+    public String getField() {
+        return field;
+    }
 }
