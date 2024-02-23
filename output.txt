@@ -1,0 +1,45 @@
+global array vfieldsA: { 2 , 0 }
+global array vfieldsB: { 0 , 2 }
+global array vtbleA: { m }
+global array vtbleB: { m }
+main:
+    %a0 = alloc(3)
+    store(%a0, @vtblea)
+    %3 = %a0 + 8
+    store(%3, @fieldsa)
+    %4 = %a0 & 1
+    if %4 then badptr else l2
+badfield:
+    fail NoSuchField
+l1:
+    %2 = getelt(%this, 0)
+    ret %2
+A(this):
+    %0 = %this + 8
+    %1 = load(%0)
+    %2 = getelt(%1, 0)
+    if %2 then l1 else badfield
+B(this):
+    %3 = 0
+    ret %3
+l2:
+    %5 = %a0 + 8
+    %6 = load(%5)
+    %7 = getelt(%6, 0)
+    if %7 then l3 else badfield
+l3:
+    %8 = 3
+    setelt(%a0, %7, %8)
+    %9 = %a0 & 1
+    if %9 then badptr else l4
+l4:
+    %10 = load(%a0)
+    %11 = getelt(%10, 0)
+    if %11 then l5 else badmethod
+badptr:
+    fail NotAPointer
+badmethod:
+    fail NoSuchMethod
+l5:
+    %12 = call(%11, %a0)
+    print(%12)

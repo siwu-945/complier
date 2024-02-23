@@ -3,9 +3,10 @@
 ## Usage
 
 - You can run main.java, make sure you are running from the root directory of the project. The default soucre code is
-  called "example1.txt"
+  called "example1.txt." You can also try example2.txt
 - You can also run the following command(when you have the main.class file):
     - java -cp out/production/milestone1 main <sourcecode.txt>
+- Since with incomplete phi functions and while, the program may not work as expected with some source code.
 
 ## Peephole Optimization Choice
 
