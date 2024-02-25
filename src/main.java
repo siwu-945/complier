@@ -1,6 +1,7 @@
 import BasicBlock.BasicBlock;
 import Primitives.IRStatement;
 import Utility.GlobalarrayGenerator;
+import Utility.IterateSource;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,13 +49,10 @@ public class main {
             e.printStackTrace();
         }
 
+        Map<String, BasicBlock> blocks = IterateSource.readingSource(wholeSource);
 
-        Parser myParser = new Parser();
-
-        Map<String, BasicBlock> blocks = myParser.readingSource(wholeSource);
-
-        Map<String, ArrayList<String>> totalFields = myParser.generateFields(wholeSource);
-        Map<String, ArrayList<String>> totalMethods = myParser.generateMethods(wholeSource);
+        Map<String, ArrayList<String>> totalFields = IterateSource.generateFields(wholeSource);
+        Map<String, ArrayList<String>> totalMethods = IterateSource.generateMethods(wholeSource);
 
 
         ArrayList<String> vtbleNames = getTbleNames(blocks);

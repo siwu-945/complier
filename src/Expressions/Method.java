@@ -36,4 +36,8 @@ public class Method extends ASTExpression {
     public String getMethodName() {
         return methodName;
     }
+
+    public ASTExpression getObject() {
+        return object;
+    }
 }
