@@ -1,37 +1,18 @@
-class ListNode [
-    fields val, next
-    method getNext() with locals:
-        return &this.next
-    method getVal() with locals:
-        return &this.val
-]
-class Stack [
-    fields list
-    method push(v) with locals tmp:
-        tmp = @ListNode
-        !tmp.val = v
-        !tmp.next = &this.list
-        !this.list = tmp
-        return 0
-    method pop() with locals tmp:
-        if (&this.list == 0): {
-            return 0
-        } else {
-            tmp = ^this.getVal()
-            !this.list = ^this.getNext()
-            return tmp
-        }
-]
+If you submitted one additional milestone, either milestone 2 or milestone 3, and got 79.9 or higher, that would get you to the point of passing the class.
+Since I don't do tenths of points in my grading, in practice, this means an 80% or higher on one milestone.
+Alternatively, you could submit milestones 2 and 3, and as long as your average of those two assignments exceeded 40%, they would earn you enough points to pass the class.
 
-main with stk:
-    stk = @Stack
-    !stk.list = 0
-    stk.push(1)
-    stk.push(3)
-    stk.push(5)
-    stk.push(9)
-    print(^stk.pop())
-    print(^stk.pop())
-    print(^stk.pop())
-    print(^stk.pop())
-    print(^stk.pop())
+In terms of actually getting to that point:
+Given that you have struggled with SSA form, jumping onto milestone 3 might be a good plan.
+It consists of extending your parser to also parse type annotations on variables and method returns,
+and then do type-checking, along the lines of the pseudocode in week 6's slides, and use that to perform optimizations.
+In fact, because your code doesn't do tagging right now anyways, you've effectively already done half the optimizations.
+The other half of the optimization work in milestone 3 is using the type information to directly access fields by their offset
+(since when you access a field, you'll know the class type of the base object,
+so you the compiler can look up the field offset ahead of time, rather than generating code to do it when the program executes).
+Much of this is tied into parts of your compiler that are more complete, and which you seem more comfortable with. I think getting an 80 on milestone 3 is quite possible.
+If you get an 80 on milestone 3 and were happy, you could then be done.
+
+
+If you got less than an 80 on milestone 3, assuming you handed it in soon enough to do some more work, you could do part of milestone 2. The two demo programs, showing cases where value numbering or improved SSA would make a difference, are worth 20 points together (10 each), and you'd get that credit even without actually making the improvements to your compiler.
+If that were still insufficient (though I'm pretty sure you could get enough points to pass from milestone 3 and the milestone 2 demo programs) or if you wanted to try to do better than passing, you could then tackle more of milestone 2, whose two parts are more or less independent, *but* require you to get some form of SSA working in either case (implementing value numbering on non-SSA form is hard).

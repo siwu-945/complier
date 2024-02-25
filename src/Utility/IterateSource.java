@@ -15,7 +15,7 @@ import static Utility.Parser.parseClass;
 
 
 public class IterateSource {
-    public static int[] findClassStart(ArrayList<String> lines, int start) {
+    public int[] findClassStart(ArrayList<String> lines, int start) {
         int[] indexs = new int[2];
         indexs[0] = -999;
 
@@ -32,7 +32,7 @@ public class IterateSource {
         return indexs;
     }
 
-    public static Map<String, BasicBlock> readingSource(String codeBlock) {
+    public Map<String, BasicBlock> readingSource(String codeBlock) {
         Map<String, BasicBlock> blocks = new LinkedHashMap<String, BasicBlock>();
 
         Map<String, ArrayList<String>> totalFields = generateFields(codeBlock);
@@ -91,7 +91,7 @@ public class IterateSource {
         return blocks;
     }
 
-    public static String completeClassString(int[] classIndex, ArrayList<String> lines) {
+    public String completeClassString(int[] classIndex, ArrayList<String> lines) {
         int start = classIndex[0];
         int end = classIndex[1];
         String classString = "";
@@ -104,7 +104,7 @@ public class IterateSource {
         return classString;
     }
 
-    public static Map<String, ArrayList<String>> generateFields(String codeBlock) {
+    public Map<String, ArrayList<String>> generateFields(String codeBlock) {
         ArrayList<String> lines = new ArrayList<>();
         HashMap<String, ArrayList<String>> fieldMap = new LinkedHashMap<>();
 
@@ -146,7 +146,7 @@ public class IterateSource {
         return fieldMap;
     }
 
-    public static Map<String, ArrayList<String>> generateMethods(String codeBlock) {
+    public Map<String, ArrayList<String>> generateMethods(String codeBlock) {
         ArrayList<String> lines = new ArrayList<>();
         HashMap<String, ArrayList<String>> methodMap = new LinkedHashMap<>();
 

@@ -15,4 +15,8 @@ public class TypeEnvironment {
     public Type typeLookUp(String name) {
         return typeEnv.get(name);
     }
+
+    public HashMap<String, Type> getTypeEnv() {
+        return typeEnv;
+    }
 }

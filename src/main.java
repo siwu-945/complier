@@ -49,10 +49,11 @@ public class main {
             e.printStackTrace();
         }
 
-        Map<String, BasicBlock> blocks = IterateSource.readingSource(wholeSource);
+        IterateSource iterator = new IterateSource();
+        Map<String, BasicBlock> blocks = iterator.readingSource(wholeSource);
 
-        Map<String, ArrayList<String>> totalFields = IterateSource.generateFields(wholeSource);
-        Map<String, ArrayList<String>> totalMethods = IterateSource.generateMethods(wholeSource);
+        Map<String, ArrayList<String>> totalFields = iterator.generateFields(wholeSource);
+        Map<String, ArrayList<String>> totalMethods = iterator.generateMethods(wholeSource);
 
 
         ArrayList<String> vtbleNames = getTbleNames(blocks);
