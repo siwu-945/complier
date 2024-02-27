@@ -1,19 +1,19 @@
 class ListNode [
-    fields val, next
-    method getNext() with locals:
+    fields val:int, next:int
+    method getNext() returning int with locals:
         return &this.next
-    method getVal() with locals:
+    method getVal() returning int with locals:
         return &this.val
 ]
 class Stack [
-    fields list
-    method push(v) with locals tmp:
+    fields list:int
+    method push(v:int) returning int with locals tmp:ListNode
         tmp = @ListNode
         !tmp.val = v
         !tmp.next = &this.list
         !this.list = tmp
         return 0
-    method pop() with locals tmp:
+    method pop() returning int with locals tmp:int:
         if (&this.list == 0): {
             return 0
         } else {
@@ -23,7 +23,7 @@ class Stack [
         }
 ]
 
-main with stk:
+main with stk:int:
     stk = @Stack
     !stk.list = 0
     stk.push(1)

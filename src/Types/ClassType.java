@@ -1,15 +1,13 @@
 package Types;
 
-import AST.ASTExpression;
-
 public class ClassType extends Type {
-    ASTExpression className;
+    String className;
 
-    public ClassType(ASTExpression className) {
+    public ClassType(String className) {
         this.className = className;
     }
 
-    public ASTExpression getClassName() {
+    public String getClassName() {
         return className;
     }
 

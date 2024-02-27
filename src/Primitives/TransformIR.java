@@ -239,9 +239,7 @@ public class TransformIR {
         return "%" + Integer.toString(tmpVar);
     }
 
-    //TODO: take consideration of classInit
     public void transformToIR(ArrayList<ASTStatement> statements, BasicBlock currentBlock, Map<String, BasicBlock> blocks, boolean classInit) {
-//        classInt = 0;
         blockCounter = currentBlock;
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
@@ -270,7 +268,7 @@ public class TransformIR {
                     IRVariable variableNode = new IRVariable(statement.getVariable().toString());
                     String tmpVar = exprToIR(statement.getExpr(), currentBlock);
                     IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
-                    currentBlock.addIRStatement(newIR);
+                    blockCounter.addIRStatement(newIR);
                 }
             }
             else if (statement instanceof FieldUpdate) {
@@ -374,8 +372,17 @@ public class TransformIR {
                         blockMap.put(blockCounter.getName(), blockCounter);
                     }
                     else if (!blockCounter.getName().contains("trueblock") && !blockCounter.getName().contains("falseblock")) {
-                        blockMap.put("l" + labelInt, blockCounter);
-                        blockCounter = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
+                        boolean hasControl = false;
+                        for (IRStatement ir : blockCounter.getIRStatements()) {
+                            if (ir instanceof returnControl) {
+                                hasControl = true;
+                            }
+                        }
+                        if (!hasControl) {
+                            blockMap.put("l" + labelInt, blockCounter);
+                        }
+                        BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
+                        blockCounter = newBlock;
                         labelInt++;
                     }
                 }

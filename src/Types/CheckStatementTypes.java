@@ -63,4 +63,8 @@ public class CheckStatementTypes {
         }
         return false;
     }
+
+    public void checkMethodTypes() {
+
+    }
 }

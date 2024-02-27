@@ -26,7 +26,7 @@ public class CheckExpressionType {
             }
         }
         else if (expr instanceof ClassExpr) {
-            return new ClassType(expr);
+            return new ClassType(((ClassExpr) expr).getClassName());
         }
         else if (expr instanceof thisRef) {
             return typeEnv.typeLookUp("this");

@@ -269,8 +269,10 @@ public class Parser {
         int currentLine = 2;
         ArrayList<ASTStatement> statementList = new ArrayList<>();
         ArrayList<Variable> localVar = new ArrayList<>();
+        ArrayList<String> returnTypeLst = new ArrayList<>();
 
         while (!lines[currentLine].startsWith("]")) {
+            String returnType = "";
             ClassMethod methodInfo;
             String methodName = "";
             String currentLineString = lines[currentLine].trim();
@@ -281,8 +283,10 @@ public class Parser {
                 methodName = currentLineString.substring(7, methodEnd);
                 int localIndex = currentLineString.indexOf("locals");
                 String localVariables = currentLineString.substring(localIndex + 7);
+                returnType = currentLineString.substring(methodEnd + 13, localIndex - 6);
                 for (String variableName : localVariables.split(",")) {
                     localVar.add(new Variable(variableName));
+//                    typeLst.add(variableName.substring(sep + 1));
                 }
                 currentLine++;
             }
@@ -299,7 +303,7 @@ public class Parser {
                 statementList.add(parseStatement(statementLine));
             }
             if (!methodName.equals("")) {
-                methodInfo = new ClassMethod(methodName, localVar, statementList);
+                methodInfo = new ClassMethod(methodName, localVar, statementList, returnType);
                 methodList.add(methodInfo);
             }
             currentLine++;
