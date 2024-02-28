@@ -23,6 +23,11 @@ public class CheckStatementTypes {
             Type variableType = typeEnv.typeLookUp(variableName);
             Type exprType = checkExpr.exprType(assignment.getExpr(), typeEnv, newClass);
 
+            if (exprType == null) {
+                System.out.println("Expression doesn't exist");
+                return false;
+            }
+
             if (variableType.getClass() != exprType.getClass()) {
                 ErrorType wrongAssignment = new ErrorType("Wrong Assignment");
                 System.out.println(wrongAssignment);
@@ -48,10 +53,10 @@ public class CheckStatementTypes {
                 String fieldInfo = classObj.getFields().get(fieldIndex);
                 fieldType = SeperateVarInfo.seperateType(fieldInfo);
             }
-            boolean validFieldAccess = checkField(typeEnv, fieldName);
-
-
-            if (!validFieldAccess) {
+//            boolean validFieldAccess = checkField(typeEnv, fieldName);
+//
+//
+            if (fieldType == null) {
                 System.out.println(new ErrorType("Invalid Field Access"));
                 return false;
             }

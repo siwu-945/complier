@@ -33,6 +33,7 @@ public class CheckExpressionType {
                 if (typeEnv.typeLookUp(classExprName) instanceof ClassType) {
                     return typeEnv.typeLookUp(classExprName);
                 }
+                return null;
             }
             return new ClassType(classNode);
         }

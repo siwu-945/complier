@@ -72,9 +72,17 @@ public class IterateSource {
                 for (ClassMethod method : newClass.getMethods()) {
                     HashMap<String, Type> envMap = generateEnv(method, newClass);
                     TypeEnvironment classTE = new TypeEnvironment(envMap);
-                    lineNum = checkMethodType(method, newClass, classTE, lineNum);
+                    ArrayList<ASTStatement> methStatements = method.getStatements();
+                    for (ASTStatement statemt : methStatements) {
+                        boolean noError = CheckStatementTypes.checkStatementTypes(statemt, classTE, newClass);
+                        if (!noError) {
+                            System.out.println("Type mismatch at line: " + Integer.toString(currentLine + +4));
+                            syntaxError = true;
+                            break;
+                        }
+                        currentLine++;
+                    }
                 }
-
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
                 BasicBlock classBlock = new BasicBlock(IRStatements, newClass.getClassName(), "class");
                 irTransformer.iterateMethods(newClass, classBlock, blocks, classInit, globalFieldArray, totalFields, totalMethods);
@@ -93,13 +101,16 @@ public class IterateSource {
                 ASTStatement statement = Parser.parseStatement(lines.get(currentLine));
                 ClassNode nullClass = null;
                 if (!CheckStatementTypes.checkStatementTypes(statement, mainTE, nullClass)) {
-                    System.out.println("Type mismatch at line: " + currentLine);
+                    System.out.println("Type mismatch at line: " + Integer.toString(currentLine + 1));
                     syntaxError = true;
                     break;
                 }
                 ;
                 statements.add(statement);
                 currentLine++;
+            }
+            if (syntaxError) {
+                break;
             }
             if (currentLine == lines.size()) {
                 inLoop = false;
