@@ -1,18 +1,25 @@
 package Types;
 
-public class ClassType extends Type {
-    String className;
+import Class.ClassNode;
 
-    public ClassType(String className) {
-        this.className = className;
+public class ClassType extends Type {
+    ClassNode classInfo;
+
+    public ClassType(ClassNode classInfo) {
+        this.classInfo = classInfo;
     }
 
     public String getClassName() {
-        return className;
+        return classInfo.getClassName();
+    }
+
+    public ClassNode getClassInfo() {
+        return classInfo;
     }
 
     @Override
     public String toString() {
-        return "ClassType " + className;
+        return "ClassType " + classInfo.getClassName();
     }
+
 }

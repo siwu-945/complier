@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 public class TypeEnvironment {
     HashMap<String, Type> typeEnv;
-//    HashMap<String, HashMap<String, Type>> global = new HashMap<>();
 
     //TODO:
     // Iterate throuogh class, add methods and fields and their corresponding types
@@ -24,9 +23,5 @@ public class TypeEnvironment {
     public void storeTypeInfo(String name, Type type) {
         typeEnv.put(name, type);
     }
-
-//    public void addMethodEnv(String className, HashMap<String, Type> methodEnv) {
-//        global.put(className, methodEnv);
-//    }
 
 }

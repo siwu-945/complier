@@ -3,6 +3,7 @@ package Class;
 import AST.ASTExpression;
 import AST.ASTStatement;
 import Expressions.Variable;
+import Utility.SeperateVarInfo;
 
 import java.util.ArrayList;
 
@@ -11,12 +12,23 @@ public class ClassNode extends ASTStatement {
     ArrayList<String> fields;
     ArrayList<ClassMethod> methods;
     ArrayList<Variable> localVar;
+    ArrayList<String> fieldName;
 
 
     public ClassNode(String className, ArrayList<String> fields, ArrayList<ClassMethod> methods) {
         this.className = className;
         this.fields = fields;
+        this.fieldName = translateFieldName(fields);
         this.methods = methods;
+    }
+
+    public ArrayList<String> translateFieldName(ArrayList<String> fieldsInfo) {
+        ArrayList<String> fieldInfo = new ArrayList<>();
+        for (String field : fieldsInfo) {
+            String fieldName = SeperateVarInfo.seperateName(field);
+            fieldInfo.add(fieldName);
+        }
+        return fieldInfo;
     }
 
     public String getClassName() {
@@ -62,6 +74,10 @@ public class ClassNode extends ASTStatement {
 
     public ArrayList<String> getFields() {
         return fields;
+    }
+
+    public ArrayList<String> getPureFieldNames() {
+        return fieldName;
     }
 
     public ArrayList<String> getMethodsNames() {

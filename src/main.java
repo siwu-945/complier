@@ -35,7 +35,7 @@ public class main {
         String filePath = "";
 
         if (args.length != 1) {
-            filePath = "example4.txt";
+            filePath = "example5.txt";
         }
         else {
             filePath = args[0];
@@ -51,6 +51,9 @@ public class main {
 
         IterateSource iterator = new IterateSource();
         Map<String, BasicBlock> blocks = iterator.readingSource(wholeSource);
+        if (blocks == null) {
+            return;
+        }
 
         Map<String, ArrayList<String>> totalFields = iterator.generateFields(wholeSource);
         Map<String, ArrayList<String>> totalMethods = iterator.generateMethods(wholeSource);

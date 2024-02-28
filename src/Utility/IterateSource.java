@@ -7,19 +7,18 @@ import Class.ClassNode;
 import Expressions.Variable;
 import Primitives.IRStatement;
 import Primitives.TransformIR;
+import Types.CheckStatementTypes;
+import Types.ClassType;
 import Types.Type;
 import Types.TypeEnvironment;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static Utility.Parser.parseClass;
 
 
 public class IterateSource {
-    TypeEnvironment typeEnv = new TypeEnvironment(new HashMap<String, Type>());
+    HashMap<String, ClassNode> allClassInfo = new HashMap<String, ClassNode>();
 
     public int[] findClassStart(ArrayList<String> lines, int start) {
         int[] indexs = new int[2];
@@ -41,12 +40,12 @@ public class IterateSource {
     public Map<String, BasicBlock> readingSource(String codeBlock) {
         Map<String, BasicBlock> blocks = new LinkedHashMap<String, BasicBlock>();
         TransformIR irTransformer = new TransformIR();
+        boolean syntaxError = false;
 
         Map<String, ArrayList<String>> totalFields = generateFields(codeBlock);
         Map<String, ArrayList<String>> totalMethods = generateMethods(codeBlock);
         ArrayList<String> vtbleNames = getVtableName(totalMethods);
         ArrayList<String> globalFieldArray = GlobalarrayGenerator.generateGlobalFieldArray(vtbleNames, totalFields);
-
         boolean inLoop = true;
         ArrayList<String> lines = new ArrayList<>();
         ArrayList<ASTStatement> statements = new ArrayList<>();
@@ -59,6 +58,9 @@ public class IterateSource {
             lines.add(line.trim());
         }
 
+        TypeEnvironment mainTE = new TypeEnvironment(new HashMap<>());
+
+        allClassInfo = GetClassInfo.getClassesInfo(lines);
         int[] classIndex = findClassStart(lines, 0);
         int currentLine = 0;
         while (inLoop) {
@@ -66,9 +68,11 @@ public class IterateSource {
             if (classIndex[0] != -999) {
                 String classString = completeClassString(classIndex, lines);
                 ClassNode newClass = parseClass(classString);
+                int lineNum = classIndex[0];
                 for (ClassMethod method : newClass.getMethods()) {
-                    HashMap<String, Type> envMap = generateEnv(method);
+                    HashMap<String, Type> envMap = generateEnv(method, newClass);
                     TypeEnvironment classTE = new TypeEnvironment(envMap);
+                    lineNum = checkMethodType(method, newClass, classTE, lineNum);
                 }
 
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
@@ -82,10 +86,18 @@ public class IterateSource {
                 }
             }
             else if (lines.get(currentLine).startsWith("main ")) {
+                createMainTE(lines.get(currentLine), mainTE);
                 currentLine++;
             }
             else {
                 ASTStatement statement = Parser.parseStatement(lines.get(currentLine));
+                ClassNode nullClass = null;
+                if (!CheckStatementTypes.checkStatementTypes(statement, mainTE, nullClass)) {
+                    System.out.println("Type mismatch at line: " + currentLine);
+                    syntaxError = true;
+                    break;
+                }
+                ;
                 statements.add(statement);
                 currentLine++;
             }
@@ -93,43 +105,60 @@ public class IterateSource {
                 inLoop = false;
             }
         }
-        classInit = false;
-        irTransformer.transformToIR(statements, statementBlock, blocks, classInit);
-        return blocks;
+        if (!syntaxError) {
+            classInit = false;
+            irTransformer.transformToIR(statements, statementBlock, blocks, classInit);
+            return blocks;
+        }
+        return null;
     }
 
-    private HashMap<String, Type> generateEnv(ClassMethod method) {
+    private void createMainTE(String line, TypeEnvironment mainTE) {
+        int varIndex = line.indexOf("with ") + 5;
+        String vars = line.substring(varIndex, line.length() - 1);
+        List<String> varList = Arrays.asList(vars.split(","));
+        for (String varInfo : varList) {
+            int infoIndex = varInfo.indexOf(":");
+            String varName = varInfo.substring(0, infoIndex);
+            String varTypeString = varInfo.substring(infoIndex + 1);
+            ClassNode classObj = null;
+            if (!varTypeString.equals("int")) {
+                classObj = allClassInfo.get(varTypeString);
+                mainTE.storeTypeInfo(classObj.getClassName(), new ClassType(classObj));
+            }
+            Type varType = StringToType.toType(varTypeString, classObj);
+            mainTE.storeTypeInfo(varName, varType);
+        }
+    }
+
+    public int checkMethodType(ClassMethod method, ClassNode newClass, TypeEnvironment classTE, int lineNum) {
+        ArrayList<ASTStatement> statements = method.getStatements();
+        for (ASTStatement statemt : statements) {
+            CheckStatementTypes.checkStatementTypes(statemt, classTE, newClass);
+            lineNum++;
+        }
+        return lineNum;
+    }
+
+    //this + locals
+    public HashMap<String, Type> generateEnv(ClassMethod method, ClassNode newClass) {
         HashMap<String, Type> envMap = new HashMap<>();
         String methodName = method.getMethodName();
         String returnType = method.getReturnType();
-        Type stringToType = StringToType.toType(returnType);
-        envMap.put(methodName, stringToType);
-        return envMap;
-    }
-
-    public void addClassVariablesToEnv(ClassNode newClass) {
-        ArrayList<ClassMethod> methods = newClass.getMethods();
-
-        for (ClassMethod method : methods) {
-            HashMap methodEnv = new HashMap<String, Type>();
-            String methodName = method.getMethodName();
-            String returnType = method.getReturnType();
-            Type stringToType = StringToType.toType(returnType);
-            methodEnv.put(methodName, stringToType);
-
-            ArrayList<Variable> localVar = method.getLocalVar();
-            for (Variable var : localVar) {
-                String varInfo = var.toString();
-                int sep = varInfo.indexOf(":");
-                if (sep != -1) {
-                    String varName = varInfo.substring(0, sep);
-                    Type stringType = StringToType.toType(varInfo.substring(sep + 1));
-                    methodEnv.put(varName, stringType);
-                }
+        ArrayList<Variable> localInfo = method.getLocalVar();
+        for (Variable var : localInfo) {
+            int index = var.toString().indexOf(":");
+            if (index > -1) {
+                String varName = var.toString().substring(0, index);
+                Type varType = StringToType.toType(var.toString().substring(index + 1, var.toString().length() - 1), newClass);
+                envMap.put(varName, varType);
             }
-//            typeEnv.addMethodEnv(methodName, methodEnv);
         }
-        int x = 1;
+        Type stringToType = StringToType.toType(returnType, newClass);
+        envMap.put(methodName, stringToType);
+        Type classType = StringToType.toType(newClass.getClassName(), newClass);
+        envMap.put("this", classType);
+        return envMap;
     }
 
     public String completeClassString(int[] classIndex, ArrayList<String> lines) {

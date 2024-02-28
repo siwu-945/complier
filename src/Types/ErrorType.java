@@ -9,6 +9,6 @@ public class ErrorType extends Type {
 
     @Override
     public String toString() {
-        return "ErrorType " + msg;
+        return "ErrorType: " + msg;
     }
 }
