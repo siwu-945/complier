@@ -2,6 +2,7 @@ package Types;
 
 import AST.ASTStatement;
 import Class.ClassNode;
+import Expressions.Number;
 import Statement.Assignment;
 import Statement.FieldUpdate;
 import Statement.IfStatement;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class CheckStatementTypes {
 
-    //TODO: is this the correct way of checking field access?
+    //TODO: implement parameter type check
     public static boolean checkStatementTypes(ASTStatement statement, TypeEnvironment typeEnv, ClassNode newClass) {
         CheckExpressionType checkExpr = new CheckExpressionType();
         ErrorType typeMismatch = new ErrorType("Type mismatch");
@@ -53,15 +54,20 @@ public class CheckStatementTypes {
                 String fieldInfo = classObj.getFields().get(fieldIndex);
                 fieldType = SeperateVarInfo.seperateType(fieldInfo);
             }
-//            boolean validFieldAccess = checkField(typeEnv, fieldName);
-//
-//
+
+            boolean exprIs0 = false;
+            if (fieldUpdate.getExpr() instanceof Number) {
+                if (((Number) fieldUpdate.getExpr()).getValue() == 0) {
+                    exprIs0 = true;
+                }
+            }
+
             if (fieldType == null) {
                 System.out.println(new ErrorType("Invalid Field Access"));
                 return false;
             }
             //TODO: double check
-            if (fieldType.getClass() != exprType.getClass()) {
+            if (fieldType.getClass() != exprType.getClass() && !exprIs0) {
                 System.out.println(typeMismatch);
                 return false;
             }

@@ -161,8 +161,16 @@ public class IterateSource {
             int index = var.toString().indexOf(":");
             if (index > -1) {
                 String varName = var.toString().substring(0, index);
-                Type varType = StringToType.toType(var.toString().substring(index + 1, var.toString().length() - 1), newClass);
-                envMap.put(varName, varType);
+                String typeInfo = var.toString().substring(index + 1, var.toString().length());
+                if (!typeInfo.equals("int")) {
+                    ClassNode exprClass = allClassInfo.get(typeInfo);
+                    Type varType = StringToType.toType(typeInfo, exprClass);
+                    envMap.put(varName, varType);
+                }
+                else {
+                    Type varType = StringToType.toType(typeInfo, newClass);
+                    envMap.put(varName, varType);
+                }
             }
         }
         Type stringToType = StringToType.toType(returnType, newClass);

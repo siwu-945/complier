@@ -63,6 +63,23 @@ public class CheckExpressionType {
                 return fieldType;
             }
         }
+        else if (expr instanceof equality) {
+            ASTExpression leftExpr = ((equality) expr).getLeft();
+            ASTExpression rightExpr = ((equality) expr).getRight();
+
+            if (rightExpr instanceof Number) {
+                if (((Number) rightExpr).getValue() == 0) {
+                    return new IntType();
+                }
+            }
+            Type leftType = exprType(leftExpr, typeEnv, classNode);
+            Type rightType = exprType(rightExpr, typeEnv, classNode);
+
+            if (leftType.getClass() != rightType.getClass()) {
+                return new ErrorType("invalid condition");
+            }
+
+        }
         return null;
     }
 }
