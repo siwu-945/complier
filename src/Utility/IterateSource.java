@@ -162,6 +162,10 @@ public class IterateSource {
             if (index > -1) {
                 String varName = var.toString().substring(0, index);
                 String typeInfo = var.toString().substring(index + 1, var.toString().length());
+                String lastChar = typeInfo.substring(typeInfo.length() - 1);
+                if (lastChar.equals(":")) {
+                    typeInfo = typeInfo.substring(0, typeInfo.length() - 1);
+                }
                 if (!typeInfo.equals("int")) {
                     ClassNode exprClass = allClassInfo.get(typeInfo);
                     Type varType = StringToType.toType(typeInfo, exprClass);
@@ -218,7 +222,8 @@ public class IterateSource {
 
                 ArrayList<String> fields = newClass.getFields();
                 for (String field : fields) {
-                    fieldArray.add(field);
+                    String varName = SeperateVarInfo.seperateName(field);
+                    fieldArray.add(varName);
                 }
 
                 fieldMap.put(newClass.getClassName(), fieldArray);
