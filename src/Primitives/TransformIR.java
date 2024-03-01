@@ -56,6 +56,21 @@ public class TransformIR {
         tmpVar++;
     }
 
+    public String getRightClassName(String currentObj, boolean classInit) {
+        String classObjName = "";
+        if (classInit) {
+            classObjName = currentClassName;
+        }
+        else {
+            classObjName = currentObj.substring(1);
+        }
+        if (!currentObj.substring(1).equals("this") && !currentObj.contains("this")) {
+            classObjName = currentObj.substring(1);
+        }
+
+        return classObjName;
+    }
+
     public IRVariable fieldRead(Map<String, BasicBlock> blocks, boolean classInit, String currentObj, String fieldName) {
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
         String classObjName = "";
@@ -76,7 +91,7 @@ public class TransformIR {
         String tmpName = "%" + tmpVar;
 
         IRVariable fieldIR = new IRVariable(tmpName);
-        IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
+        IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + "8");
         tmpVar++;
         IRVariable fieldLoadedVar = new IRVariable("%" + tmpVar);
         IRLoad loadField = new IRLoad(fieldLoadedVar, fieldIR);
@@ -104,19 +119,20 @@ public class TransformIR {
     }
 
     public void getx(String classString, int fieldID) {
-
         String tmpName = "%" + tmpVar;
         IRVariable classVar = new IRVariable(classString);
         IRVariable newVar = new IRVariable(tmpName);
         IRgetelt getX = new IRgetelt(newVar, classVar, fieldID);
         returnControl returnGet = new returnControl(newVar);
         ArrayList<IRStatement> IRStatements = new ArrayList<>();
-        IRStatements.add(getX);
-        IRStatements.add(returnGet);
-        BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-        blockMap.put("l" + labelInt, newBlock);
-        blockCounter = newBlock;
-        labelInt++;
+        blockCounter.addIRStatement(getX);
+        blockCounter.addIRStatement(returnGet);
+//        IRStatements.add(getX);
+//        IRStatements.add(returnGet);
+//        BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+//        blockMap.put("l" + labelInt, newBlock);
+//        blockCounter = newBlock;
+//        labelInt++;
     }
 
     public String exprToIR(ASTExpression expr, BasicBlock currentBlock) {
@@ -220,7 +236,7 @@ public class TransformIR {
             int fieldId = totalFields.get(currentClass).indexOf(fieldName);
 
             tagCheck(blockCounter, objectName);
-            fieldRead(blocks, classInit, "@" + objectName, fieldName);
+//            fieldRead(blocks, classInit, "@" + objectName, fieldName);
 
             getx(objectName, fieldId);
             BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
@@ -237,23 +253,25 @@ public class TransformIR {
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
+                    String initClassName = ((ClassExpr) statement.getExpr()).getClassName();
                     String classVar = "%" + alphabet[classInt] + "" + classNum;
                     classes.add(statement.getVariable().toString());
                     localClassFields.put(statement.getVariable().toString(), ((ClassExpr) statement.getExpr()).getClassName());
                     IRVariable classVariable = new IRVariable(classVar);
-                    IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
+                    int allocSize = totalFields.get(initClassName).size();
+                    IRAssignment alloc = new IRAssignment(classVariable, "alloc(" + allocSize + ")");
                     IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
 //                    tmpVar++;
-                    String tmpName2 = "%" + tmpVar;
-                    IRVariable fieldIR = new IRVariable(tmpName2);
-                    IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
-                    IRStore storeField = new IRStore(fieldIR, "@fields" + alphabet[classInt]);
-                    tmpVar++;
+//                    String tmpName2 = "%" + tmpVar;
+//                    IRVariable fieldIR = new IRVariable(tmpName2);
+//                    IRAssignment filedAlloc = new IRAssignment(fieldIR, classVar + " + 8");
+//                    IRStore storeField = new IRStore(fieldIR, "@fields" + alphabet[classInt]);
+//                    tmpVar++;
 
                     currentBlock.addIRStatement(alloc);
                     currentBlock.addIRStatement(store);
-                    currentBlock.addIRStatement(filedAlloc);
-                    currentBlock.addIRStatement(storeField);
+//                    currentBlock.addIRStatement(filedAlloc);
+//                    currentBlock.addIRStatement(storeField);
                     classInt++;
 
                 }
@@ -289,19 +307,20 @@ public class TransformIR {
                 if (!classVar.equals("%this")) {
                     currentClassName = ((FieldUpdate) statement).getVariable().toString().substring(1);
                 }
-                else {
-                    boolean found = false;
-                }
-                IRVariable geteltVar = fieldRead(blocks, classInit, currentClass, field);
-                BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
-                blocks.put("l" + labelInt, newBlock);
-                blockCounter = newBlock;
-                labelInt++;
+//                IRVariable geteltVar = fieldRead(blocks, classInit, currentClass, field);
+//                BasicBlock newBlock = new BasicBlock(new ArrayList<>(), "l" + labelInt, "non-class");
+//                blocks.put("l" + labelInt, newBlock);
+//                blockCounter = newBlock;
+//                labelInt++;
                 ASTExpression fieldUpdateRight = statement.getExpr();
+
+                String obj = getRightClassName(currentClass, classInit);
+                String currentClassObj = localClassFields.get(obj);
+                int fieldId = totalFields.get(currentClassObj).indexOf(field);
 
                 String tmpVarString = exprToIR(fieldUpdateRight, blockCounter);
                 IRVariable rightVar = new IRVariable(tmpVarString);
-                IRSet setRight = new IRSet(new IRVariable(classVar), geteltVar, rightVar);
+                IRSet setRight = new IRSet(new IRVariable(classVar), new IRVariable(Integer.toString(fieldId)), rightVar);
                 blockCounter.addIRStatement(setRight);
                 tmpVar++;
             }
@@ -352,7 +371,7 @@ public class TransformIR {
                     int fieldId = totalFields.get(currentClass).indexOf(fieldName);
 
                     tagCheck(blockCounter, objectName);
-                    fieldRead(blocks, classInit, "@" + objectName, fieldName);
+//                    fieldRead(blocks, classInit, "@" + objectName, fieldName);
                     getx(objectName, fieldId);
                 }
                 else {
