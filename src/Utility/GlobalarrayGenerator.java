@@ -36,7 +36,7 @@ public class GlobalarrayGenerator {
         ArrayList<String> globalArray = new ArrayList<>();
         for (String tbleName : vtbleNames) {
             ArrayList<String> fields = totalFields.get(tbleName);
-            for (int i = 2; i < fields.size(); i++) {
+            for (int i = 1; i < fields.size(); i++) {
                 if (!globalArray.contains(fields.get(i))) {
                     globalArray.add(fields.get(i));
                 }
@@ -51,7 +51,6 @@ public class GlobalarrayGenerator {
         int[] fieldsX = new int[fieldSize];
         for (String tbleName : vtbleNames) {
             ArrayList<String> fields = totalFields.get(tbleName);
-            fields.remove(0);
             fields.remove(0);
             for (int i = 0; i < fieldSize; i++) {
                 String currentField = globalArray.get(i);

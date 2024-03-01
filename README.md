@@ -10,6 +10,9 @@
 
 ## Type-based optimization:
 
+- Tag checks
+    - removed tag checks for field access and method calls.
+
 - Field Access:
     - Removed the field map
         - -Correspondingly, I removed this IR so I don't have to jump to 2nd slot for field map: %1 = %x0 + 8

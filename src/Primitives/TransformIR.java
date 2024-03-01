@@ -165,13 +165,13 @@ public class TransformIR {
             }
             String classVar = "%" + className + "" + classNum;
 
-            tagCheck(blockCounter, classVar);
-            ArrayList<IRStatement> empty = new ArrayList<>();
-            IRSLine badPtrLine = new IRSLine("fail NotAPointer");
-            empty.add(badPtrLine);
-            BasicBlock badPtr = new BasicBlock(empty, "badptr", "non-class");
-            ArrayList<IRStatement> irStatements = new ArrayList<>();
-            BasicBlock newBlock = new BasicBlock(irStatements, "l" + labelInt, "non-class");
+//            tagCheck(blockCounter, classVar);
+//            ArrayList<IRStatement> empty = new ArrayList<>();
+//            IRSLine badPtrLine = new IRSLine("fail NotAPointer");
+//            empty.add(badPtrLine);
+//            BasicBlock badPtr = new BasicBlock(empty, "badptr", "non-class");
+//            ArrayList<IRStatement> irStatements = new ArrayList<>();
+//            BasicBlock newBlock = new BasicBlock(irStatements, "l" + labelInt, "non-class");
             String tmpName2 = "%" + tmpVar;
             IRVariable newVar2 = new IRVariable(tmpName2);
             IRLoad newLoad = new IRLoad(newVar2, new IRVariable(classVar));
@@ -191,21 +191,21 @@ public class TransformIR {
             String objClassName = localClassFields.get(currentClass);
             int methodID = totalMethods.get(objClassName).indexOf(((Method) expr).getMethodName());
             IRgetelt newGet = new IRgetelt(newVar3, newVar2, methodID);
-            Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
+//            Conditional newCondition2 = new Conditional("l" + Integer.toString(labelInt + 1), "badmethod", newVar3);
 
-            ArrayList<IRStatement> empty2 = new ArrayList<>();
-            IRSLine badMethodLine = new IRSLine("fail NoSuchMethod");
-            empty2.add(badMethodLine);
-            BasicBlock badMethod = new BasicBlock(empty2, "badmethod", "non-class");
+//            ArrayList<IRStatement> empty2 = new ArrayList<>();
+//            IRSLine badMethodLine = new IRSLine("fail NoSuchMethod");
+//            empty2.add(badMethodLine);
+//            BasicBlock badMethod = new BasicBlock(empty2, "badmethod", "non-class");
 
-            newBlock.addIRStatement(newLoad);
-            newBlock.addIRStatement(newGet);
-            newBlock.addIRStatement(newCondition2);
-            blockCounter = newBlock;
-            blockMap.put("l" + labelInt, newBlock);
-            blockMap.put("badptr", badPtr);
-            blockMap.put("badmethod", badMethod);
-            labelInt++;
+            blockCounter.addIRStatement(newLoad);
+            blockCounter.addIRStatement(newGet);
+//            newBlock.addIRStatement(newCondition2);
+//            blockCounter = newBlock;
+//            blockMap.put("l" + labelInt, newBlock);
+//            blockMap.put("badptr", badPtr);
+//            blockMap.put("badmethod", badMethod);
+//            labelInt++;
         }
         else if (expr instanceof equality) {
             String leftVar = exprToIR(((equality) expr).getLeft(), blockCounter);
@@ -297,12 +297,12 @@ public class TransformIR {
                     Character className = alphabet[currentClassIndex];
                     classVar = "%" + className + "" + classNum;
                 }
-                tagCheck(blockCounter, classVar);
-                if (!classInit) {
-                    blockCounter = storeX;
-                    blocks.put("l" + labelInt, blockCounter);
-                    labelInt++;
-                }
+//                tagCheck(blockCounter, classVar);
+//                if (!classInit) {
+//                    blockCounter = storeX;
+//                    blocks.put("l" + labelInt, blockCounter);
+//                    labelInt++;
+//                }
                 String field = ((FieldUpdate) statement).getField();
                 if (!classVar.equals("%this")) {
                     currentClassName = ((FieldUpdate) statement).getVariable().toString().substring(1);
@@ -337,12 +337,12 @@ public class TransformIR {
                     IRcall getValue = new IRcall(codeAddress, classObject, returnVarible);
 
                     ArrayList<IRStatement> IRStatements = new ArrayList<>();
-                    BasicBlock printBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-                    blockCounter = printBlock;
+//                    BasicBlock printBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+//                    blockCounter = printBlock;
                     blockCounter.addIRStatement(getValue);
                     IRPrint newIR = new IRPrint(returnVarible.toString());
                     blockCounter.addIRStatement(newIR);
-                    blockMap.put("l" + labelInt, blockCounter);
+//                    blockMap.put("l" + labelInt, blockCounter);
                 }
                 else {
                     IRVariable returnVarible = new IRVariable("%" + tmpVar);
