@@ -218,7 +218,7 @@ public class IterateSource {
                 fieldArray.add("vtbl" + newClass.getClassName());
 
                 //pointer to field array
-                fieldArray.add("fmap" + newClass.getClassName());
+//                fieldArray.add("fmap" + newClass.getClassName());
 
                 ArrayList<String> fields = newClass.getFields();
                 for (String field : fields) {

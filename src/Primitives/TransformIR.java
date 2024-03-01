@@ -100,13 +100,6 @@ public class TransformIR {
         blockCounter.addIRStatement(getelt);
         blockCounter.addIRStatement(newCondition2);
         blockMap.put("l" + labelInt, blockCounter);
-//        labelInt++;
-//        if (!classInit) {
-//            BasicBlock newBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-//            blocks.put("l" + labelInt, newBlock);
-//            blockCounter = newBlock;
-//            labelInt++;
-//        }
         return geteltVar;
     }
 
