@@ -100,6 +100,9 @@ public class IterateSource {
             else {
                 ASTStatement statement = Parser.parseStatement(lines.get(currentLine));
                 ClassNode nullClass = null;
+                if (currentLine == 35) {
+                    int x = 0;
+                }
                 if (!CheckStatementTypes.checkStatementTypes(statement, mainTE, nullClass)) {
                     System.out.println("Type mismatch at line: " + Integer.toString(currentLine + 1));
                     syntaxError = true;
@@ -156,6 +159,28 @@ public class IterateSource {
         HashMap<String, Type> envMap = new HashMap<>();
         String methodName = method.getMethodName();
         String returnType = method.getReturnType();
+        ArrayList<String> argumentsList = method.getArguments();
+        for (String arg : argumentsList) {
+            int index = arg.indexOf(":");
+            if (index == -1) {
+                break;
+            }
+            String argName = arg.substring(0, index);
+            String typeInfo = arg.substring(index + 1, arg.length());
+            String lastChar = typeInfo.substring(typeInfo.length() - 1);
+            if (lastChar.equals(":")) {
+                typeInfo = typeInfo.substring(0, typeInfo.length() - 1);
+            }
+            if (!typeInfo.equals("int")) {
+                ClassNode exprClass = allClassInfo.get(typeInfo);
+                Type argType = StringToType.toType(typeInfo, exprClass);
+                envMap.put(argName, argType);
+            }
+            else {
+                Type argType = StringToType.toType(typeInfo, newClass);
+                envMap.put(argName, argType);
+            }
+        }
         ArrayList<Variable> localInfo = method.getLocalVar();
         for (Variable var : localInfo) {
             int index = var.toString().indexOf(":");

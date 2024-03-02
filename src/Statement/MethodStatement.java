@@ -16,13 +16,21 @@ public class MethodStatement extends ASTStatement {
         this.arguments = arguments;
     }
 
-    public StringBuilder argumentsString() {
+    public String argumentsString() {
         StringBuilder argumentsString = new StringBuilder();
+        int count = 1;
         for (ASTExpression expression : arguments) {
             argumentsString.append(expression.toString());
-            argumentsString.append("");
+            if (count < arguments.size()) {
+                argumentsString.append(", ");
+            }
+            count++;
         }
-        return argumentsString;
+        return argumentsString.toString();
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 
     @Override

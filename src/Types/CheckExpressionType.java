@@ -1,10 +1,15 @@
 package Types;
 
 import AST.ASTExpression;
+import Class.ClassMethod;
 import Class.ClassNode;
 import Expressions.Number;
+import Expressions.Object;
 import Expressions.*;
 import Utility.SeperateVarInfo;
+import Utility.StringToType;
+
+import java.util.ArrayList;
 
 public class CheckExpressionType {
 
@@ -46,6 +51,16 @@ public class CheckExpressionType {
             //if object is a class object, check the method type
             if (exprType(object, typeEnv, classNode) instanceof ClassType) {
                 String methodName = ((Method) expr).getMethodName();
+                Type classType = typeEnv.typeLookUp(object.toString());
+                ClassNode classInfo = ((ClassType) classType).getClassInfo();
+                ArrayList<ClassMethod> classMethods = classInfo.getMethods();
+                for (ClassMethod method : classMethods) {
+                    if (method.getMethodName().equals(methodName)) {
+                        String returnType = method.getReturnType();
+                        return StringToType.toType(method.getReturnType(), classInfo);
+                    }
+                }
+
                 return typeEnv.typeLookUp(methodName);
             }
             else {
@@ -79,6 +94,9 @@ public class CheckExpressionType {
                 return new ErrorType("invalid condition");
             }
 
+        }
+        else if (expr instanceof Object && typeEnv.hasClass(expr.toString())) {
+            return typeEnv.typeLookUp(expr.toString());
         }
         return null;
     }

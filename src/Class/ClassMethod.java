@@ -10,12 +10,14 @@ public class ClassMethod {
     ArrayList<Variable> localVar;
     ArrayList<ASTStatement> statements;
     String returnType;
+    String arguments;
 
-    public ClassMethod(String methodExp, ArrayList<Variable> localVar, ArrayList<ASTStatement> statements, String returnType) {
+    public ClassMethod(String methodExp, ArrayList<Variable> localVar, ArrayList<ASTStatement> statements, String returnType, String arguments) {
         this.methodExp = methodExp;
         this.localVar = localVar;
         this.statements = statements;
         this.returnType = returnType;
+        this.arguments = arguments;
     }
 
     @Override
@@ -38,6 +40,15 @@ public class ClassMethod {
 
     public ArrayList<ASTStatement> getStatements() {
         return statements;
+    }
+
+    public ArrayList<String> getArguments() {
+        ArrayList<String> args = new ArrayList<>();
+        String[] arg = arguments.split(",");
+        for (String a : arg) {
+            args.add(a);
+        }
+        return args;
     }
 
     public String getReturnType() {

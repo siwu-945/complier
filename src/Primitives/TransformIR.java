@@ -34,9 +34,20 @@ public class TransformIR {
 
     //TODO: fix the getting the correct index
     public int classIndex(ArrayList<String> classArray, String name) {
-        String className = name.substring(1);
+        if (name.startsWith("%") || name.startsWith("@") || name.startsWith("^")) {
+            name = name.substring(1);
+        }
+        String className = name;
+
         for (int i = 0; i < classArray.size(); i++) {
             if (classArray.get(i).equals(className)) {
+                if (classArray.contains("this")) {
+                    if (i == 0) {
+                        return i;
+                    }
+                    i -= 1;
+                    return i;
+                }
                 return i;
             }
         }
@@ -268,8 +279,8 @@ public class TransformIR {
 //                    IRStore storeField = new IRStore(fieldIR, "@fields" + alphabet[classInt]);
 //                    tmpVar++;
 
-                    currentBlock.addIRStatement(alloc);
-                    currentBlock.addIRStatement(store);
+                    blockCounter.addIRStatement(alloc);
+                    blockCounter.addIRStatement(store);
 //                    currentBlock.addIRStatement(filedAlloc);
 //                    currentBlock.addIRStatement(storeField);
                     classInt++;
@@ -334,7 +345,8 @@ public class TransformIR {
                     int classInt = classIndex(classes, "^" + obj);
                     IRVariable classObject = new IRVariable("%" + alphabet[classInt] + "" + classNum);
                     IRVariable returnVarible = new IRVariable("%" + tmpVar);
-                    IRcall getValue = new IRcall(codeAddress, classObject, returnVarible);
+                    String arguments = ((Method) statement.getExpr()).argumentsString();
+                    IRcall getValue = new IRcall(codeAddress, classObject, returnVarible, arguments);
 
                     ArrayList<IRStatement> IRStatements = new ArrayList<>();
 //                    BasicBlock printBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
@@ -400,34 +412,56 @@ public class TransformIR {
                 }
             }
             else if (statement instanceof MethodStatement) {
-                ASTExpression printVal = statement.getVariable();
-                String tmpVarString = exprToIR(printVal, blockCounter);
-                IRVariable codeAddress = new IRVariable(tmpVarString);
+
+                //load vtble, search for method, call method
+                IRVariable fieldLoadedVar = new IRVariable("%" + tmpVar);
                 tmpVar++;
+                String className = currentClassName;
+                if (!totalMethods.containsKey(currentClassName)) {
+                    className = localClassFields.get(currentClassName);
+                }
+                int methodId = totalMethods.get(className).indexOf(((MethodStatement) statement).getMethodName());
+
+                if (statement.getExpr().toString().contains("this")) {
+                    currentClassName = "this";
+                }
+                int classIndex = classIndex(classes, currentClassName);
+                IRVariable classVar = new IRVariable("%" + alphabet[classIndex] + "" + classNum);
+                IRLoad loadField = new IRLoad(fieldLoadedVar, classVar);
+
+                IRVariable methodVar = new IRVariable("%" + tmpVar);
+                tmpVar++;
+                IRgetelt getMethod = new IRgetelt(methodVar, classVar, methodId);
                 String obj = statement.getExpr().toString();
                 if (obj.contains("= ^")) {
                     int objStart = obj.indexOf("= ^");
                     obj = obj.substring(objStart + 3);
                 }
-                int classInt = classIndex(classes, "^" + obj);
                 String methodObjName = "";
                 if (obj.contains("this")) {
                     methodObjName = "%this";
                 }
                 else {
-                    methodObjName = "%" + alphabet[classInt] + "" + classNum;
+                    int currentClassIndex = classIndex(classes, obj);
+                    methodObjName = Character.toString(alphabet[currentClassIndex]);
+                    methodObjName = "%" + methodObjName + "" + classNum;
                 }
                 IRVariable classObject = new IRVariable(methodObjName);
                 IRVariable returnVarible = new IRVariable("%" + tmpVar);
-                IRcall getValue = new IRcall(codeAddress, classObject, returnVarible);
+
+                tmpVar++;
+                String arguments = ((MethodStatement) statement).argumentsString();
+                IRcall getValue = new IRcall(fieldLoadedVar, classObject, returnVarible, arguments);
 
                 ArrayList<IRStatement> IRStatements = new ArrayList<>();
-                BasicBlock printBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
-                blockCounter = printBlock;
+//                BasicBlock printBlock = new BasicBlock(IRStatements, "l" + labelInt, "non-class");
+//                blockCounter = printBlock;
+                blockCounter.addIRStatement(loadField);
+                blockCounter.addIRStatement(getMethod);
                 blockCounter.addIRStatement(getValue);
                 IRPrint newIR = new IRPrint(returnVarible.toString());
-                blockCounter.addIRStatement(newIR);
-                blockMap.put("l" + labelInt, blockCounter);
+//                blockCounter.addIRStatement(newIR);
+//                blockMap.put("l" + labelInt, blockCounter);
             }
             else if (statement instanceof IfStatement) {
                 ArrayList<ASTStatement> trueBranch = ((IfStatement) statement).getTrueBranch();
@@ -483,6 +517,13 @@ public class TransformIR {
         blockMap = blocks;
         totalMethods = totalMethodsMap;
         currentClassName = newClass.getClassName();
+//        if (classInit) {
+//            classes.add(newClass.getClassName());
+//        }
+        if (!classes.contains("this")) {
+            classes.add("this");
+        }
+
         for (int i = 0; i < methodLists.size(); i++) {
             ClassMethod method = methodLists.get(i);
             ArrayList<ASTStatement> statements = method.getStatements();

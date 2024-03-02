@@ -24,4 +24,8 @@ public class TypeEnvironment {
         typeEnv.put(name, type);
     }
 
+    public boolean hasClass(String name) {
+        return typeEnv.containsKey(name);
+    }
+
 }

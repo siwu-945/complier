@@ -6,6 +6,7 @@ import Expressions.Number;
 import Statement.Assignment;
 import Statement.FieldUpdate;
 import Statement.IfStatement;
+import Statement.PrintStatement;
 import Utility.SeperateVarInfo;
 
 import java.util.ArrayList;
@@ -85,6 +86,14 @@ public class CheckStatementTypes {
 
             for (ASTStatement sta : ifStatement.getFalseBranch()) {
                 checkStatementTypes(sta, typeEnv, newClass);
+            }
+        }
+        else if (statement instanceof PrintStatement) {
+            PrintStatement printStatement = (PrintStatement) statement;
+            Type exprType = checkExpr.exprType(printStatement.getExpr(), typeEnv, newClass);
+            if (exprType.getClass() != IntType.class) {
+                System.out.println("Printing invalid expression");
+                return false;
             }
         }
         return true;

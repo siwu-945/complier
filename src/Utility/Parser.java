@@ -212,15 +212,17 @@ public class Parser {
             ASTExpression right_e = right_ePair.getFirst();
             return new FieldUpdate(left_e, field, right_e);
         }
+        //TODO: Add recursive parsing method
         else if (line.startsWith("^") || !line.contains("!") && line.contains("(") && line.contains(")") && line.contains(".")) {
-            if (!line.startsWith("^")) {
+            if (!line.startsWith("^") && !line.contains("^")) {
                 line = "^" + line;
             }
             int dotIndex = line.indexOf(".");
             int argStart = line.indexOf("(");
+            int methodStart = line.indexOf("^");
             List<ASTExpression> arguments = new ArrayList<>();
 
-            ASTExpression objectExpr = new Object(line.substring(1, dotIndex));
+            ASTExpression objectExpr = new Object(line.substring(methodStart, dotIndex));
             String methodName = line.substring(dotIndex + 1, argStart);
             String argString = line.substring(argStart + 1, line.length() - 1);
             if (argString.length() > 0) {
@@ -275,19 +277,22 @@ public class Parser {
             String returnType = "";
             ClassMethod methodInfo;
             String methodName = "";
+            String arguments = "";
             String currentLineString = lines[currentLine].trim();
             if (currentLineString.startsWith("method ")) {
                 statementList = new ArrayList<>();
                 localVar = new ArrayList<>();
-                int methodEnd = lines[currentLine].trim().indexOf('(');
-                methodName = currentLineString.substring(7, methodEnd);
+                int methodEnd = lines[currentLine].trim().indexOf(')');
+                int methodStart = lines[currentLine].trim().indexOf("(");
+                methodName = currentLineString.substring(7, methodStart);
                 int localIndex = currentLineString.indexOf("locals");
                 String localVariables = currentLineString.substring(localIndex + 7);
-                returnType = currentLineString.substring(methodEnd + 13, localIndex - 6);
+                returnType = currentLineString.substring(methodEnd + 11, localIndex - 6);
                 for (String variableName : localVariables.split(",")) {
                     localVar.add(new Variable(variableName));
 //                    typeLst.add(variableName.substring(sep + 1));
                 }
+                arguments = currentLineString.substring(methodStart + 1, methodEnd);
                 currentLine++;
             }
             String statementLine = lines[currentLine].trim();
@@ -303,7 +308,7 @@ public class Parser {
                 statementList.add(parseStatement(statementLine));
             }
             if (!methodName.equals("")) {
-                methodInfo = new ClassMethod(methodName, localVar, statementList, returnType);
+                methodInfo = new ClassMethod(methodName, localVar, statementList, returnType, arguments);
                 methodList.add(methodInfo);
             }
             currentLine++;
