@@ -17,7 +17,7 @@ class Stack [
         if (&this.list == 0): {
             return 0
         } else {
-            tmp = ^this.list.getVal()
+            tmp = ^this.pop()
             return tmp
         }
 ]
