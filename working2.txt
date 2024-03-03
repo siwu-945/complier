@@ -7,7 +7,7 @@ class ListNode [
 ]
 class Stack [
     fields list:ListNode
-    method push(v:int, x:int) returning int with locals tmp:ListNode
+    method push(v:int) returning int with locals tmp:ListNode
         tmp = @ListNode
         !tmp.val = v
         !tmp.next = &this.list
