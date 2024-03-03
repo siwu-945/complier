@@ -1,0 +1,64 @@
+global array vfieldsListNode: { 2 , 3 , 0 }
+global array vfieldsStack: { 0 , 0 , 2 }
+global array vtbleListNode: { getNext , getVal , 0 , 0 }
+global array vtbleStack: { 0 , 0 , push , pop }
+main:
+    %b0 = alloc(2)
+    store(%b0, @vtbleb)
+    %11 = 0
+    setelt(%b0, 1, %11)
+    %12 = load(%b0)
+    %13 = getelt(%b0, 0)
+    %14 = call(%12, %b0, 1)
+    %15 = load(%b0)
+    %16 = getelt(%b0, 0)
+    %17 = call(%15, %b0, 3)
+    %18 = load(%b0)
+    %19 = getelt(%b0, 0)
+    %20 = call(%18, %b0, 5)
+    %21 = load(%b0)
+    %22 = getelt(%b0, 0)
+    %23 = call(%21, %b0, 9)
+    %24 = load(%b0)
+    %25 = getelt(%24, 1)
+    %26 = call(%25, %b0)
+    print(%26)
+    %26 = load(%b0)
+    %27 = getelt(%26, 1)
+    %28 = call(%27, %b0)
+    print(%28)
+    %28 = load(%b0)
+    %29 = getelt(%28, 1)
+    %30 = call(%29, %b0)
+    print(%30)
+    %30 = load(%b0)
+    %31 = getelt(%30, 1)
+    %32 = call(%31, %b0)
+    print(%32)
+    ret 0
+l1:
+    setelt(%this, 2, %1)
+    setelt(%this, 1, %2)
+    %4 = 0
+    ret %4
+ListNode(this):
+    %0 = getelt(%this, 2)
+    ret %0
+l3:
+    %5 = 0
+    %6 = %4 == %5
+    if %6 then trueblock4 else falseblock4
+trueblock4:
+    %7 = 0
+    ret %7
+falseblock4:
+    %7 = load(%a0)
+    %8 = getelt(%a0, 1)
+    %9 = call(%7, %this)
+    ret %10
+Stack(this):
+    %a0 = alloc(3)
+    store(%a0, @vtblea)
+    setelt(%this, 1, %0)
+    %1 = getelt(%this, 1)
+    ret %1
