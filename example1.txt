@@ -1,0 +1,18 @@
+class A [
+    fields x
+    method m() with locals:
+      return &this.x
+]
+class B [
+    fields y
+    method do() with locals x:
+      x = 10
+      while (x > 0): {
+        x = (x - 1)
+        print(x)
+      }
+]
+
+main with x:
+x = @B
+_ = ^x.do()

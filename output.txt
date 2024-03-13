@@ -1,0 +1,123 @@
+global array vfieldsListNode: { 2 , 3 , 0 }
+global array vfieldsStack: { 0 , 0 , 2 }
+global array vtbleListNode: { getNext , getVal , 0 , 0 }
+global array vtbleStack: { 0 , 0 , push , pop }
+main:
+    %b0 = alloc(3)
+    store(%b0, @vtbleb)
+    %28 = %b0 + 8
+    store(%28, @fieldsb)
+    %29 = %b0 & 1
+    if %29 then badptr else l15
+badfield:
+    fail NoSuchField
+l1:
+    %2 = getelt(%this, 3)
+    ret %2
+l2:
+    %4 = getelt(%this, 2)
+    ret %4
+ListNode(this):
+    %0 = %this + 8
+    %1 = load(%0)
+    %2 = getelt(%1, 3)
+    if %2 then l1 else badfield
+l3:
+    setelt(%this, %7, %7)
+    %8 = %this + 8
+    %9 = load(%8)
+    %10 = getelt(%9, 3)
+    if %10 then l4 else badfield
+l4:
+    %10 = %this + 8
+    %11 = load(%10)
+    %12 = getelt(%11, 2)
+    if %12 then l5 else badfield
+l5:
+    %12 = getelt(%this, 2)
+    ret %12
+l6:
+    setelt(%this, %10, %12)
+    %13 = %this + 8
+    %14 = load(%13)
+    %15 = getelt(%14, 2)
+    if %15 then l7 else badfield
+l7:
+    setelt(%this, %15, %15)
+    %17 = 0
+    ret %17
+l8:
+    setelt(%this, %15, %15)
+    %17 = 0
+    ret %17
+l9:
+    %19 = getelt(%this, 2)
+    ret %19
+l10:
+    %20 = 0
+    %21 = %19 == %20
+    if %21 then trueblock11 else falseblock11
+trueblock11:
+    %22 = 0
+    ret %22
+falseblock11:
+l12:
+    %25 = %%this0 & 1
+    if %25 then badptr else l13
+l13:
+    %26 = load(%%this0)
+    %27 = getelt(%26, 0)
+    if %27 then l14 else badmethod
+    setelt(%this, %25, %27)
+    ret %28
+badptr:
+    fail NotAPointer
+badmethod:
+    fail NoSuchMethod
+l14:
+    %26 = load(%%this0)
+    %27 = getelt(%26, 0)
+    if %27 then l14 else badmethod
+    setelt(%this, %25, %27)
+    ret %28
+Stack(this):
+    %a0 = alloc(3)
+    store(%a0, @vtblea)
+    %4 = %a0 + 8
+    store(%4, @fieldsa)
+    %5 = %this + 8
+    %6 = load(%5)
+    %7 = getelt(%6, 2)
+    if %7 then l3 else badfield
+l15:
+    %30 = %b0 + 8
+    %31 = load(%30)
+    %32 = getelt(%31, 2)
+    if %32 then l16 else badfield
+l16:
+    %33 = 0
+    setelt(%b0, %32, %33)
+l17:
+    %39 = load(%b0)
+    %40 = getelt(%39, 1)
+    if %40 then l18 else badmethod
+l18:
+    %42 = load(%b0)
+    %43 = getelt(%42, 1)
+    if %43 then l19 else badmethod
+l19:
+    %45 = load(%b0)
+    %46 = getelt(%45, 1)
+    if %46 then l20 else badmethod
+l20:
+    %48 = load(%b0)
+    %49 = getelt(%48, 1)
+    if %49 then l21 else badmethod
+l21:
+    %51 = load(%b0)
+    %52 = getelt(%51, 1)
+    if %52 then l22 else badmethod
+l22:
+    %53 = call(%52, %b0)
+    print(%53)
+    ret 0
