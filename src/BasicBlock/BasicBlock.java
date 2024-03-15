@@ -3,6 +3,7 @@ package BasicBlock;
 import Primitives.IRStatement;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 //Ends with either
 //        • A return statement, or
 //        • An unconditional jump, or
@@ -13,14 +14,14 @@ public class BasicBlock {
     private String blockname;
     private String attribute;
     private ArrayList<BasicBlock> predecessors;
-    private ArrayList<String> variableDefined;
+    private HashMap<String, ArrayList<String>> variableDefined;
 
     public BasicBlock(ArrayList<IRStatement> IRStatements, String blockname, String attribute) {
         this.IRStatements = IRStatements;
         this.blockname = blockname;
         this.attribute = attribute;
         this.predecessors = new ArrayList<>();
-        this.variableDefined = new ArrayList<>();
+        this.variableDefined = new HashMap<>();
     }
 
     public void addIRStatement(IRStatement irLine) {
@@ -65,13 +66,18 @@ public class BasicBlock {
         return predecessors;
     }
 
-    public ArrayList<String> getVariableDefined() {
+    public HashMap<String, ArrayList<String>> getVariableDefined() {
         return variableDefined;
     }
 
-    public void addVariableDefined(String variable) {
-        if (!variableDefined.contains(variable)) {
-            variableDefined.add(variable);
+    public void addVariableDefined(String variable, String tmpVar) {
+        if (variableDefined.containsKey(variable)) {
+            variableDefined.get(variable).add(tmpVar);
+        }
+        else {
+            ArrayList<String> tmp = new ArrayList<>();
+            tmp.add(tmpVar);
+            variableDefined.put(variable, tmp);
         }
     }
 }

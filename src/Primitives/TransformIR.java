@@ -12,7 +12,9 @@ import Expressions.Number;
 import Expressions.*;
 import Statement.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TransformIR {
@@ -24,6 +26,7 @@ public class TransformIR {
     int classInt = 0;
     char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
     int classNum = 0;
+    int whileBlockInt = 1;
     ArrayList<String> classes = new ArrayList<>();
     Map<String, BasicBlock> blockMap;
     BasicBlock blockCounter;
@@ -245,11 +248,11 @@ public class TransformIR {
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
-                    blockCounter.addVariableDefined(statement.getVariable().toString());
                     String classVar = "%" + alphabet[classInt] + "" + classNum;
                     classes.add(statement.getVariable().toString());
                     localClassFields.put(statement.getVariable().toString(), ((ClassExpr) statement.getExpr()).getClassName());
                     IRVariable classVariable = new IRVariable(classVar);
+                    blockCounter.addVariableDefined(statement.getVariable().toString(), classVar);
                     IRAssignment alloc = new IRAssignment(classVariable, "alloc(3)");
                     IRStore store = new IRStore(classVariable, "@vtble" + alphabet[classInt]);
 //                    tmpVar++;
@@ -268,8 +271,10 @@ public class TransformIR {
                 }
                 else {
                     IRVariable variableNode = new IRVariable(statement.getVariable().toString());
-                    String tmpVar = exprToIR(statement.getExpr(), currentBlock);
-                    IRAssignment newIR = new IRAssignment(variableNode, tmpVar);
+                    String tmpVarString = exprToIR(statement.getExpr(), currentBlock);
+                    int x = tmpVar;
+                    blockCounter.addVariableDefined(statement.getVariable().toString(), tmpVarString);
+                    IRAssignment newIR = new IRAssignment(variableNode, tmpVarString);
                     blockCounter.addIRStatement(newIR);
                 }
             }
@@ -483,42 +488,64 @@ public class TransformIR {
                     }
                 }
                 blockCounter = phiBlock;
-                if (blockCounter.hasMultiplePredecessors()) {
-                    ArrayList<BasicBlock> predecessors = blockCounter.getPredecessors();
-                    ArrayList<String> blockNames = new ArrayList<>();
-                    Set<String> usedVariable = new HashSet<String>();
-                    ArrayList<String> phiVariables = new ArrayList<>();
-                    for (BasicBlock predecessor : predecessors) {
-                        blockNames.add(predecessor.getName());
-                        for (String v : predecessor.getVariableDefined()) {
-                            if (!usedVariable.add(v)) {
-                                phiVariables.add(v);
-                            }
-                        }
-                    }
-                    IRVariable phiVar = new IRVariable("%" + tmpVar);
-                    tmpVar++;
-                    phi phiStatement = new phi(phiVar, blockNames, phiVariables);
-                    blockCounter.addIRStatement(phiStatement);
-                }
+                checkPredecessor(blockCounter);
             }
             else if (statement instanceof WhileStatement) {
                 ArrayList<ASTStatement> whileBranch = ((WhileStatement) statement).getWhileBranch();
-                String whileBlockName = "whileblock";
-                Jump condiionalJump = new Jump(whileBlockName);
-                blockCounter.addIRStatement(condiionalJump);
-
-                BasicBlock whileBlock = new BasicBlock(new ArrayList<>(), "whileblock" + labelInt, "non-class");
-                whileBlock.addPredecessor(blockCounter);
-                blockCounter = whileBlock;
-                blockMap.put("whileblock" + labelInt, blockCounter);
+                String phiBlockName = "l" + labelInt;
+                BasicBlock phiBlock = new BasicBlock(new ArrayList<>(), phiBlockName, "non-class");
                 labelInt++;
+
+                String whileBlockName = "whileblock";
+                Jump conditionalJump = new Jump(whileBlockName);
+                blockCounter.addIRStatement(conditionalJump);
+
+                BasicBlock whileBlock = new BasicBlock(new ArrayList<>(), "whileblock" + whileBlockInt, "non-class");
+                whileBlock.addPredecessor(blockCounter);
+
+                checkPredecessor(blockCounter);
+
+                blockCounter = whileBlock;
+                blockMap.put("whileblock" + whileBlockInt, blockCounter);
+                whileBlockInt++;
                 transformToIR(whileBranch, blockCounter, blocks, classInit);
             }
         }
         if (!classInit) {
             IRVariable defaultReturn = new IRVariable("0");
             blockCounter.addIRStatement(new returnControl(defaultReturn));
+        }
+    }
+
+    private void checkPredecessor(BasicBlock cb) {
+        boolean accessSameVariable = false;
+        if (cb.hasMultiplePredecessors()) {
+            ArrayList<BasicBlock> predecessors = cb.getPredecessors();
+            ArrayList<String> blockNames = new ArrayList<>();
+            ArrayList<String> userVariables = new ArrayList<>();
+            ArrayList<String> phiVariables = new ArrayList<>();
+            for (BasicBlock predecessor : predecessors) {
+                blockNames.add(predecessor.getName());
+                HashMap<String, ArrayList<String>> predecessorVariables = predecessor.getVariableDefined();
+                for (String variable : predecessorVariables.keySet()) {
+                    ArrayList<String> tmpVarLst = predecessorVariables.get(variable);
+                    for (String tmpVar : tmpVarLst) {
+                        phiVariables.add(tmpVar);
+                    }
+                    if (userVariables.contains(variable)) {
+                        accessSameVariable = true;
+                    }
+                    else {
+                        userVariables.add(variable);
+                    }
+                }
+            }
+            if (accessSameVariable) {
+                IRVariable phiVar = new IRVariable("%" + tmpVar);
+                tmpVar++;
+                phi phiStatement = new phi(phiVar, blockNames, phiVariables);
+                cb.addIRStatement(phiStatement);
+            }
         }
     }
 
