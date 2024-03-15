@@ -16,13 +16,13 @@ public class MethodStatement extends ASTStatement {
         this.arguments = arguments;
     }
 
-    public StringBuilder argumentsString() {
+    public String argumentsString() {
         StringBuilder argumentsString = new StringBuilder();
         for (ASTExpression expression : arguments) {
             argumentsString.append(expression.toString());
             argumentsString.append("");
         }
-        return argumentsString;
+        return argumentsString.toString();
     }
 
     @Override
@@ -33,5 +33,9 @@ public class MethodStatement extends ASTStatement {
     @Override
     public ASTExpression getExpr() {
         return object;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 }

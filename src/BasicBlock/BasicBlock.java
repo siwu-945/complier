@@ -12,11 +12,13 @@ public class BasicBlock {
     private ArrayList<IRStatement> IRStatements;
     private String blockname;
     private String attribute;
+    private ArrayList<BasicBlock> predecessors;
 
     public BasicBlock(ArrayList<IRStatement> IRStatements, String blockname, String attribute) {
         this.IRStatements = IRStatements;
         this.blockname = blockname;
         this.attribute = attribute;
+        this.predecessors = new ArrayList<>();
     }
 
     public void addIRStatement(IRStatement irLine) {
@@ -45,5 +47,11 @@ public class BasicBlock {
 
     public String getAttribute() {
         return attribute;
+    }
+
+    public void addPredecessor(BasicBlock predecessor) {
+        if (!predecessors.contains(predecessor)) {
+            predecessors.add(predecessor);
+        }
     }
 }

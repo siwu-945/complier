@@ -212,6 +212,20 @@ public class Parser {
             ASTExpression right_e = right_ePair.getFirst();
             return new FieldUpdate(left_e, field, right_e);
         }
+        else if (line.startsWith("_")) {
+            int equalIndex = line.indexOf('=');
+            String right_e = line.substring(equalIndex + 2);
+            ASTExpression exp = parseExpr(right_e).getFirst();
+            ASTExpression objectExpr = null;
+            String methodName = "";
+            List<ASTExpression> arguments = new ArrayList<>();
+            if (exp instanceof Method) {
+                objectExpr = ((Method) exp).getObject();
+                methodName = ((Method) exp).getMethodName();
+                arguments = ((Method) exp).getArguments();
+            }
+            return new MethodStatement(objectExpr, methodName, arguments);
+        }
         else if (line.startsWith("^") || !line.contains("!") && line.contains("(") && line.contains(")") && line.contains(".")) {
             if (!line.startsWith("^")) {
                 line = "^" + line;
@@ -231,20 +245,6 @@ public class Parser {
                 }
             }
 
-            return new MethodStatement(objectExpr, methodName, arguments);
-        }
-        else if (line.startsWith("_ ")) {
-            int equalIndex = line.indexOf('=');
-            String right_e = line.substring(equalIndex + 2);
-            ASTExpression exp = parseExpr(right_e).getFirst();
-            ASTExpression objectExpr = null;
-            String methodName = "";
-            List<ASTExpression> arguments = new ArrayList<>();
-            if (exp instanceof Method) {
-                objectExpr = ((Method) exp).getObject();
-                methodName = ((Method) exp).getMethodName();
-                arguments = ((Method) exp).getArguments();
-            }
             return new MethodStatement(objectExpr, methodName, arguments);
         }
         else {
