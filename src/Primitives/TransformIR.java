@@ -12,9 +12,7 @@ import Expressions.Number;
 import Expressions.*;
 import Statement.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TransformIR {
@@ -247,6 +245,7 @@ public class TransformIR {
         for (ASTStatement statement : statements) {
             if (statement instanceof Assignment) {
                 if (statement.getExpr() instanceof ClassExpr) {
+                    blockCounter.addVariableDefined(statement.getVariable().toString());
                     String classVar = "%" + alphabet[classInt] + "" + classNum;
                     classes.add(statement.getVariable().toString());
                     localClassFields.put(statement.getVariable().toString(), ((ClassExpr) statement.getExpr()).getClassName());
@@ -452,6 +451,9 @@ public class TransformIR {
                 String trueBlockName = "trueblock" + labelInt;
                 String falseBlockName = "falseblock" + labelInt;
                 labelInt++;
+                String phiBlockName = "l" + labelInt;
+                BasicBlock phiBlock = new BasicBlock(new ArrayList<>(), phiBlockName, "non-class");
+                labelInt++;
                 if (falseBranch.size() == 0) {
                     falseBlockName = "null";
                 }
@@ -462,12 +464,42 @@ public class TransformIR {
                 blockCounter = trueBlock;
                 blockMap.put(trueBlockName, blockCounter);
                 transformToIR(trueBranch, blockCounter, blocks, classInit);
+                phiBlock.addPredecessor(trueBlock);
+                if (noJump(blockCounter)) {
+                    Jump jump = new Jump(phiBlockName);
+                    blockCounter.addIRStatement(jump);
+                    blockMap.put(phiBlockName, phiBlock);
+                }
                 if (falseBranch.size() != 0) {
                     BasicBlock falseBlock = new BasicBlock(falseIR, falseBlockName, "non-class");
                     falseBlock.addPredecessor(blockCounter);
                     blockMap.put(falseBlockName, falseBlock);
                     blockCounter = falseBlock;
                     transformToIR(falseBranch, blockCounter, blocks, classInit);
+                    phiBlock.addPredecessor(falseBlock);
+                    if (noJump(blockCounter)) {
+                        Jump jump = new Jump(phiBlockName);
+                        blockCounter.addIRStatement(jump);
+                    }
+                }
+                blockCounter = phiBlock;
+                if (blockCounter.hasMultiplePredecessors()) {
+                    ArrayList<BasicBlock> predecessors = blockCounter.getPredecessors();
+                    ArrayList<String> blockNames = new ArrayList<>();
+                    Set<String> usedVariable = new HashSet<String>();
+                    ArrayList<String> phiVariables = new ArrayList<>();
+                    for (BasicBlock predecessor : predecessors) {
+                        blockNames.add(predecessor.getName());
+                        for (String v : predecessor.getVariableDefined()) {
+                            if (!usedVariable.add(v)) {
+                                phiVariables.add(v);
+                            }
+                        }
+                    }
+                    IRVariable phiVar = new IRVariable("%" + tmpVar);
+                    tmpVar++;
+                    phi phiStatement = new phi(phiVar, blockNames, phiVariables);
+                    blockCounter.addIRStatement(phiStatement);
                 }
             }
             else if (statement instanceof WhileStatement) {
@@ -488,6 +520,19 @@ public class TransformIR {
             IRVariable defaultReturn = new IRVariable("0");
             blockCounter.addIRStatement(new returnControl(defaultReturn));
         }
+    }
+
+    private boolean noJump(BasicBlock block) {
+        ArrayList<IRStatement> ir = block.getIRStatements();
+        for (IRStatement statement : ir) {
+            if (statement instanceof returnControl) {
+                return false;
+            }
+            else if (statement instanceof Jump) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void iterateMethods(ClassNode newClass, BasicBlock classBlock, Map<String, BasicBlock> blocks, boolean classInit, ArrayList<String> gfields, Map<String, ArrayList<String>> totalFieldsMap, Map<String, ArrayList<String>> totalMethodsMap) {

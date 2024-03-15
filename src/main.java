@@ -51,6 +51,7 @@ public class main {
 
         IterateSource iterator = new IterateSource();
         Map<String, BasicBlock> blocks = iterator.readingSource(wholeSource);
+//        Map<String, BasicBlock> blocks = iterator.addPhi(initialBlocks);
 
         Map<String, ArrayList<String>> totalFields = iterator.generateFields(wholeSource);
         Map<String, ArrayList<String>> totalMethods = iterator.generateMethods(wholeSource);

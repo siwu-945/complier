@@ -9,6 +9,6 @@ public class Jump extends ControlTransfer {
 
     @Override
     public String toString() {
-        return "Jump " + blockName;
+        return "jump " + blockName;
     }
 }

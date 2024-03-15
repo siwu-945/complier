@@ -1,7 +1,12 @@
 class A [
     fields x
-    method m() with locals:
-      return &this.x
+    method m() with locals y:
+      if (y > 0): {
+        x = 1
+      } else: {
+        x = 0
+      }
+      return x
 ]
 class B [
     fields y
