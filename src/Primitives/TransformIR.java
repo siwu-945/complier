@@ -42,6 +42,13 @@ public class TransformIR {
 
         for (int i = 0; i < classArray.size(); i++) {
             if (classArray.get(i).equals(className)) {
+                if (classArray.contains("this")) {
+                    if (i == 0) {
+                        return i;
+                    }
+                    i -= 1;
+                    return i;
+                }
                 return i;
             }
         }
@@ -270,12 +277,11 @@ public class TransformIR {
 
                 }
                 else {
-                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
+//                    IRVariable variableNode = new IRVariable(statement.getVariable().toString());
                     String tmpVarString = exprToIR(statement.getExpr(), currentBlock);
-                    int x = tmpVar;
                     blockCounter.addVariableDefined(statement.getVariable().toString(), tmpVarString);
-                    IRAssignment newIR = new IRAssignment(variableNode, tmpVarString);
-                    blockCounter.addIRStatement(newIR);
+//                    IRAssignment newIR = new IRAssignment(variableNode, tmpVarString);
+//                    blockCounter.addIRStatement(newIR);
                 }
             }
             else if (statement instanceof FieldUpdate) {
@@ -340,6 +346,10 @@ public class TransformIR {
                     IRPrint newIR = new IRPrint(returnVarible.toString());
                     blockCounter.addIRStatement(newIR);
                     blockMap.put("l" + labelInt, blockCounter);
+                }
+                else if (statement.getExpr() instanceof Variable) {
+                    IRPrint newPrint = new IRPrint(codeAddress.toString());
+                    blockCounter.addIRStatement(newPrint);
                 }
                 else {
                     IRVariable returnVarible = new IRVariable("%" + tmpVar);
@@ -455,10 +465,9 @@ public class TransformIR {
 
                 String trueBlockName = "trueblock" + labelInt;
                 String falseBlockName = "falseblock" + labelInt;
+                String phiBlockName = "phi" + labelInt;
                 labelInt++;
-                String phiBlockName = "l" + labelInt;
                 BasicBlock phiBlock = new BasicBlock(new ArrayList<>(), phiBlockName, "non-class");
-                labelInt++;
                 if (falseBranch.size() == 0) {
                     falseBlockName = "null";
                 }
@@ -488,27 +497,39 @@ public class TransformIR {
                     }
                 }
                 blockCounter = phiBlock;
+                tmpVar++;
                 checkPredecessor(blockCounter);
             }
             else if (statement instanceof WhileStatement) {
                 ArrayList<ASTStatement> whileBranch = ((WhileStatement) statement).getWhileBranch();
-                String phiBlockName = "l" + labelInt;
+                String phiBlockName = "phi" + labelInt;
                 BasicBlock phiBlock = new BasicBlock(new ArrayList<>(), phiBlockName, "non-class");
-                labelInt++;
 
-                String whileBlockName = "whileblock";
-                Jump conditionalJump = new Jump(whileBlockName);
+                Jump conditionalJump = new Jump(phiBlockName);
                 blockCounter.addIRStatement(conditionalJump);
+                phiBlock.addPredecessor(blockCounter);
 
                 BasicBlock whileBlock = new BasicBlock(new ArrayList<>(), "whileblock" + whileBlockInt, "non-class");
-                whileBlock.addPredecessor(blockCounter);
-
-                checkPredecessor(blockCounter);
+                whileBlock.addPredecessor(phiBlock);
+                phiBlock.addPredecessor(whileBlock);
+//                checkPredecessor(blockCounter);
 
                 blockCounter = whileBlock;
                 blockMap.put("whileblock" + whileBlockInt, blockCounter);
                 whileBlockInt++;
                 transformToIR(whileBranch, blockCounter, blocks, classInit);
+                blockMap.put(phiBlockName, phiBlock);
+                if (noJump(blockCounter)) {
+                    Jump jump = new Jump(phiBlockName);
+                    blockCounter.addIRStatement(jump);
+                    blockMap.put(phiBlockName, phiBlock);
+                }
+                blockCounter = phiBlock;
+                IRVariable phiVar = new IRVariable("%" + tmpVar);
+
+                checkPredecessor(blockCounter);
+                Conditional whileConditional = new Conditional(whileBlock.getName(), "l" + labelInt, phiVar);
+                blockCounter.addIRStatement(whileConditional);
             }
         }
         if (!classInit) {
@@ -517,35 +538,57 @@ public class TransformIR {
         }
     }
 
-    private void checkPredecessor(BasicBlock cb) {
-        boolean accessSameVariable = false;
+    private IRVariable checkPredecessor(BasicBlock cb) {
         if (cb.hasMultiplePredecessors()) {
             ArrayList<BasicBlock> predecessors = cb.getPredecessors();
             ArrayList<String> blockNames = new ArrayList<>();
+            HashMap<String, String> blockUsed = new HashMap<>();
             ArrayList<String> userVariables = new ArrayList<>();
-            ArrayList<String> phiVariables = new ArrayList<>();
+            HashMap<String, ArrayList<String>> phiVariables = new HashMap<>();
+            ArrayList<String> reusedVariables = new ArrayList<>();
+
             for (BasicBlock predecessor : predecessors) {
                 blockNames.add(predecessor.getName());
                 HashMap<String, ArrayList<String>> predecessorVariables = predecessor.getVariableDefined();
                 for (String variable : predecessorVariables.keySet()) {
                     ArrayList<String> tmpVarLst = predecessorVariables.get(variable);
-                    for (String tmpVar : tmpVarLst) {
-                        phiVariables.add(tmpVar);
+                    for (String tmpVarString : tmpVarLst) {
+                        if (phiVariables.containsKey(variable)) {
+                            phiVariables.get(variable).add(tmpVarString);
+                        }
+                        else {
+                            phiVariables.put(variable, tmpVarLst);
+                        }
+
+                        if (!blockUsed.containsKey(tmpVarString)) {
+                            blockUsed.put(tmpVarString, predecessor.getName());
+                        }
                     }
                     if (userVariables.contains(variable)) {
-                        accessSameVariable = true;
+                        reusedVariables.add(variable);
                     }
                     else {
                         userVariables.add(variable);
                     }
                 }
             }
-            if (accessSameVariable) {
-                IRVariable phiVar = new IRVariable("%" + tmpVar);
-                tmpVar++;
-                phi phiStatement = new phi(phiVar, blockNames, phiVariables);
-                cb.addIRStatement(phiStatement);
+            addPhi(reusedVariables, phiVariables, cb, blockUsed);
+        }
+        return null;
+    }
+
+    public void addPhi(ArrayList<String> reusedVariables, HashMap<String, ArrayList<String>> phiVariables, BasicBlock cb, HashMap<String, String> blockUsed) {
+        tmpVar--;
+        for (String variable : reusedVariables) {
+            ArrayList<String> varibleLst = phiVariables.get(variable);
+            ArrayList<String> blockNames = new ArrayList<>();
+            for (String tmpVar : varibleLst) {
+                blockNames.add(blockUsed.get(tmpVar));
             }
+            tmpVar++;
+            IRVariable phiVar = new IRVariable("%" + tmpVar);
+            phi phiFunc = new phi(phiVar, blockNames, varibleLst);
+            cb.addIRStatement(phiFunc);
         }
     }
 

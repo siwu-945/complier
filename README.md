@@ -1,4 +1,4 @@
-# CS441 Milestone 3
+# CS441 Milestone 2
 
 ## Usage
 
@@ -6,21 +6,23 @@
   called "example1.txt." You can also try example2.txt
 - You can also run the following command(when you have the main.class file):
     - java -cp out/production/milestone1 main <sourcecode.txt>
-- Since with incomplete phi functions and while, the program may not work as expected with some source code.
 
-## Peephole Optimization Choice
+## Optimized SSA Transformation
 
-- I choose to remove any tag checks on accesses to "%this." No need to tag checks when accessing fields or methods of
-  %this in the IR
-- you can find the optimization in TransformIR.java, within the method:
-    - public void tagCheck(BasicBlock currentBlock, String className)
-    - I checked if the access is to %this, and if it is, I just return without doing anything.
+- Whenever I detect a variable assignment, I add the variable assigned to a HashMap in that specific basic blocks
+    - In my basic block, a HashMap has the variable (from the source code) stored as key, and the tmp variables are
+      stored in a list (in the value of that hashmap)
+        - So I can know how many times the variable has been used
+    - I also have a hashmap that keep tracks which tmp variable has been used in which block
+        - So in my phi function, I can know which tmp variable is used in which block
+- I also keep track of the predecessor blocks of the current block
 
-## Incomplete?
-
-- phi functions
-    - I really tried to implement phi functions, but I couldn't get it to work. I tried to implement when the statement
-      is a "while" statement, but I couldn't figure a way to use phi function with it.
-- Sorry if the code is really messy, I only gained the understanding of what I am doing when I wrote a lot, and didn't
-  plan a good code readability from the start.
+- In example1.txt
+    - In class A, it has a method that has 2 variables.
+        - In the if and else block, only 'x' has been given values in different predecessor blocks.
+        - Thus, it has inserted one phi insertion, keeping track which block it has been used
+        - Ignoring other variable, 'y', which has been assigned only in one block.
+    - In class B, it has a method that has 2 variables. Each variable has been assigned in different blocks.
+        - Thus, it has inserted two phi insertion, keeping track which block it has been used
+  
 

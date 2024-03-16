@@ -184,20 +184,13 @@ public class IterateSource {
         return vtbleNames;
     }
 
-//    public Map<String, BasicBlock> addPhi(Map<String, BasicBlock> blocks) {
-//        for (Map.Entry<String, BasicBlock> entry : blocks.entrySet()) {
-//            BasicBlock block = entry.getValue();
-//            if (block.hasMultiplePredecessors()) {
-//                ArrayList<BasicBlock> predecessors = block.getPredecessors();
-//                ArrayList<String> blockNames = new ArrayList<>();
-//                for (BasicBlock b : predecessors) {
-//                    blockNames.add(b.getName());
-//                }
-//                phi phiFunc = new phi(blockNames, )
-//                block.addIRStatement(phiFunc);
-//            }
-//
-//        }
-//        return blocks;
-//    }
+    public void checkPredecessorTest(Map<String, BasicBlock> blocks) {
+        for (Map.Entry<String, BasicBlock> entry : blocks.entrySet()) {
+            BasicBlock block = entry.getValue();
+            if (block.hasMultiplePredecessors()) {
+                System.out.println("multiple predecessors:" + block.getName());
+            }
+
+        }
+    }
 }

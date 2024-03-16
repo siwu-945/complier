@@ -1,10 +1,12 @@
 class A [
-    fields x
-    method m() with locals y:
-      if (y > 0): {
+    fields x, z
+    method m() with locals x, y:
+      x = 5
+      y = 8
+      if (x > 0): {
         x = 1
       } else: {
-        y = 0
+        x = 0
       }
       return x
 ]
@@ -12,8 +14,10 @@ class B [
     fields y
     method do() with locals x:
       x = 10
+      i = 8
       while (x != 0): {
         x = (x - 1)
+        i = (i + 1)
         print(x)
       }
 ]
