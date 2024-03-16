@@ -15,7 +15,9 @@ public class ValueNumber {
         Map<String, Integer> ValueNumber = new HashMap<String, Integer>();
         Map<Integer, IRVariable> name = new HashMap<Integer, IRVariable>();
         AtomicInteger nextVN = new AtomicInteger(0);
+        HashMap<String, Integer> tmpVarValueMap = new HashMap<>();
 
+        storeTmpVarValue(currentBlock, tmpVarValueMap);
         for (int i = 0; i < currentBlock.getIRStatements().size(); i++) {
             IRStatement statement = currentBlock.getIRStatements().get(i);
             if (isArithmeticOperation(statement)) {
@@ -27,6 +29,12 @@ public class ValueNumber {
                 String right = parts[2];
                 String op = parts[1];
 
+                if (tmpVarValueMap.containsKey(left)) {
+                    left = String.valueOf(tmpVarValueMap.get(left));
+                }
+                if (tmpVarValueMap.containsKey(right)) {
+                    right = String.valueOf(tmpVarValueMap.get(right));
+                }
                 Integer Vli = ValueNumber.computeIfAbsent(left, k -> nextVN.getAndIncrement());
                 Integer Vri = ValueNumber.computeIfAbsent(right, k -> nextVN.getAndIncrement());
                 String H = hashExp(op, Vli, Vri);
@@ -54,6 +62,18 @@ public class ValueNumber {
                     name.put(nextVN.get(), Ti);
                     ValueNumber.put(Ti.toString(), nextVN.get());
                     ValueNumber.put(H, nextVN.getAndIncrement());
+                }
+            }
+        }
+    }
+
+    private void storeTmpVarValue(BasicBlock currentBlock, HashMap<String, Integer> tmpVarValueMap) {
+        for (int i = 0; i < currentBlock.getIRStatements().size(); i++) {
+            IRStatement statement = currentBlock.getIRStatements().get(i);
+            if (statement instanceof IRAssignment) {
+                IRAssignment assignment = (IRAssignment) statement;
+                if (assignment.getRight().matches("-?\\d+(\\.\\d+)?")) {
+                    tmpVarValueMap.put(assignment.getLeft().toString(), Integer.parseInt(assignment.getRight()));
                 }
             }
         }
