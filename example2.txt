@@ -1,18 +1,18 @@
-If you submitted one additional milestone, either milestone 2 or milestone 3, and got 79.9 or higher, that would get you to the point of passing the class.
-Since I don't do tenths of points in my grading, in practice, this means an 80% or higher on one milestone.
-Alternatively, you could submit milestones 2 and 3, and as long as your average of those two assignments exceeded 40%, they would earn you enough points to pass the class.
+class A [
+    fields x, z
+    method m() with locals x, y:
+        x = (3 + 3)
+        y = (3 + 3)
+        return x
+]
+class B [
+    fields y
+    method do() with locals x, i:
+        x = (3 + 3)
+        i = (3 + 3)
+        return x
+]
 
-In terms of actually getting to that point:
-Given that you have struggled with SSA form, jumping onto milestone 3 might be a good plan.
-It consists of extending your parser to also parse type annotations on variables and method returns,
-and then do type-checking, along the lines of the pseudocode in week 6's slides, and use that to perform optimizations.
-In fact, because your code doesn't do tagging right now anyways, you've effectively already done half the optimizations.
-The other half of the optimization work in milestone 3 is using the type information to directly access fields by their offset
-(since when you access a field, you'll know the class type of the base object,
-so you the compiler can look up the field offset ahead of time, rather than generating code to do it when the program executes).
-Much of this is tied into parts of your compiler that are more complete, and which you seem more comfortable with. I think getting an 80 on milestone 3 is quite possible.
-If you get an 80 on milestone 3 and were happy, you could then be done.
-
-
-If you got less than an 80 on milestone 3, assuming you handed it in soon enough to do some more work, you could do part of milestone 2. The two demo programs, showing cases where value numbering or improved SSA would make a difference, are worth 20 points together (10 each), and you'd get that credit even without actually making the improvements to your compiler.
-If that were still insufficient (though I'm pretty sure you could get enough points to pass from milestone 3 and the milestone 2 demo programs) or if you wanted to try to do better than passing, you could then tackle more of milestone 2, whose two parts are more or less independent, *but* require you to get some form of SSA working in either case (implementing value numbering on non-SSA form is hard).
+main with x:
+x = @B
+_ = ^x.do()

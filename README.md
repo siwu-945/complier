@@ -9,6 +9,9 @@
 
 ## Optimized SSA Transformation
 
+- In checkPredecessor(BasicBlock cb) and addPhi(ArrayList<String> reusedVariables, HashMap<String, ArrayList<String>>
+  phiVariables, BasicBlock cb, HashMap<String, String> blockUsed) function in TransformIR
+    - I only add phi function if the variable has been assigned in more than one predecessor block
 - Whenever I detect a variable assignment, I add the variable assigned to a HashMap in that specific basic blocks
     - In my basic block, a HashMap has the variable (from the source code) stored as key, and the tmp variables are
       stored in a list (in the value of that hashmap)

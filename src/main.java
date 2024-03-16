@@ -2,6 +2,7 @@ import BasicBlock.BasicBlock;
 import Primitives.IRStatement;
 import Utility.GlobalarrayGenerator;
 import Utility.IterateSource;
+import ValueNumbering.ValueNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class main {
         String filePath = "";
 
         if (args.length != 1) {
-            filePath = "example1.txt";
+            filePath = "example2.txt";
         }
         else {
             filePath = args[0];
@@ -72,6 +73,11 @@ public class main {
         }
 
         ArrayList<String> blockNames = getBlockNames(blocks);
+
+        for (BasicBlock b : blocks.values()) {
+            ValueNumber bVal = new ValueNumber();
+            bVal.basicValueNumbering(b);
+        }
 
         for (String blockName : blockNames) {
             ArrayList<IRStatement> blockIR = blocks.get(blockName).getIRStatements();

@@ -15,4 +15,12 @@ public class IRAssignment extends IRStatement {
         return variable + " = " + right.toString();
     }
 
+    public String getRight() {
+        return right;
+    }
+
+    public IRVariable getLeft() {
+        return variable;
+    }
+
 }
