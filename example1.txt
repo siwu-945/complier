@@ -12,7 +12,7 @@ class A [
 ]
 class B [
     fields y
-    method do() with locals x:
+    method do() with locals x, i:
       x = 10
       i = 8
       while (x != 0): {

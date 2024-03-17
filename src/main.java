@@ -36,7 +36,7 @@ public class main {
         String filePath = "";
 
         if (args.length != 1) {
-            filePath = "example2.txt";
+            filePath = "example1.txt";
         }
         else {
             filePath = args[0];
@@ -73,11 +73,12 @@ public class main {
         }
 
         ArrayList<String> blockNames = getBlockNames(blocks);
+        ValueNumber bVal = new ValueNumber();
+        bVal.blocksConcert(blocks);
 
-        for (BasicBlock b : blocks.values()) {
-            ValueNumber bVal = new ValueNumber();
-            bVal.basicValueNumbering(b);
-        }
+//        for (BasicBlock b : blocks.values()) {
+//            bVal.basicValueNumbering(b);
+//        }
 
         for (String blockName : blockNames) {
             ArrayList<IRStatement> blockIR = blocks.get(blockName).getIRStatements();
