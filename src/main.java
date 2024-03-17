@@ -36,7 +36,7 @@ public class main {
         String filePath = "";
 
         if (args.length != 1) {
-            filePath = "example1.txt";
+            filePath = "example2.txt";
         }
         else {
             filePath = args[0];
